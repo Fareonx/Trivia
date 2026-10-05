@@ -1,0 +1,184 @@
+// DOM UI: lobby, HUD, question window, toasts. All player-facing text is here.
+import { TEAM_COLORS } from './assets.js';
+
+export const TEXT = {
+  errors: {
+    not_adjacent: 'Yalnız öz ərazinizə qonşu xananı tuta bilərsiniz',
+    own_cell: 'Bu xana artıq sizindir',
+    knight_busy: 'Cəngavər hələ məşğuldur',
+    locked: 'Bu xana sizin üçün hələ bağlıdır',
+    cell_busy: 'Bu xanada artıq döyüş gedir',
+    no_path: 'Ora öz ərazinizdən yol yoxdur',
+    no_cell: 'Bu xana mövcud deyil',
+    no_resources: 'Resurs çatışmır',
+    max_level: 'Ratuşa maksimum səviyyədədir',
+    game_running: 'Bu otaqda oyun artıq gedir',
+    room_full: 'Otaq doludur (maks. 4 oyunçu)',
+    not_enough_players: 'Ən azı 2 oyunçu lazımdır',
+    not_host: 'Oyunu yalnız otağın sahibi başlada bilər',
+    not_alive: 'Siz artıq müşahidəçisiniz',
+    game_over: 'Oyun bitib',
+  },
+  correct: 'Düzgün! ✔',
+  wrong: 'Səhv cavab. Xana 1 dəqiqəlik sizin üçün bağlandı',
+  timedOut: 'Vaxt bitdi. Xana 1 dəqiqəlik sizin üçün bağlandı',
+  duelWrong: 'Dueldə uduzdunuz — cəngavər Ratuşaya qayıtdı',
+};
+
+const $ = (id) => document.getElementById(id);
+
+export function toast(text, kind = '') {
+  const el = document.createElement('div');
+  el.className = `toast ${kind}`;
+  el.textContent = text;
+  $('toasts').appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+export function errorText(code) {
+  return TEXT.errors[code] ?? code;
+}
+
+function dot(color) {
+  const span = document.createElement('span');
+  span.className = 'dot';
+  span.style.background = TEAM_COLORS[color]?.css ?? '#888';
+  return span;
+}
+
+export function renderLobby(lobby, you) {
+  $('join-form').hidden = true;
+  $('room-panel').hidden = false;
+  $('room-code').textContent = lobby.code;
+  const list = $('members');
+  list.replaceChildren();
+  const colors = Object.keys(TEAM_COLORS);
+  lobby.members.forEach((m, i) => {
+    const li = document.createElement('li');
+    li.append(dot(colors[i]), `${m.name}${m.id === lobby.hostId ? ' 👑' : ''}${m.id === you ? ' (siz)' : ''}${m.online ? '' : ' — offline'}`);
+    list.appendChild(li);
+  });
+  const isHost = lobby.hostId === you;
+  $('start-btn').hidden = !isHost;
+  $('start-btn').disabled = lobby.members.length < 2 || lobby.inGame;
+  $('lobby-hint').textContent = lobby.inGame ? 'Oyun gedir…'
+    : lobby.members.length < 2 ? 'Ən azı 2 oyunçu gözlənilir. Dostunuza otaq kodunu göndərin.'
+      : isHost ? 'Hazırsınızsa, oyunu başladın.' : 'Otağın sahibi oyunu başladacaq.';
+}
+
+export function renderHud(state) {
+  const me = state.players.find((p) => p.id === state.you);
+  $('gold').textContent = me.gold;
+  $('wood').textContent = me.wood;
+  $('hall-level').textContent = `Ratuşa: ${'★'.repeat(me.townHallLevel)}`;
+  const next = state.config.townHallLevels[me.townHallLevel + 1];
+  const btn = $('upgrade-btn');
+  if (!me.alive) {
+    btn.hidden = true;
+  } else if (next) {
+    btn.hidden = false;
+    btn.textContent = `Gücləndir: ${next.cost.gold} qızıl + ${next.cost.wood} taxta`;
+    btn.disabled = me.gold < next.cost.gold || me.wood < next.cost.wood;
+  } else {
+    btn.hidden = false;
+    btn.textContent = 'Maksimum səviyyə';
+    btn.disabled = true;
+  }
+
+  const counts = {};
+  for (const c of state.cells) if (c.owner) counts[c.owner] = (counts[c.owner] ?? 0) + 1;
+  const list = $('players');
+  list.replaceChildren();
+  for (const p of state.players) {
+    const li = document.createElement('li');
+    if (!p.alive) li.className = 'dead';
+    li.append(dot(p.color), `${p.name}${p.id === state.you ? ' (siz)' : ''} — ${p.alive ? `${counts[p.id] ?? 0} xana` : 'məğlub'}`);
+    list.appendChild(li);
+  }
+
+  const k = me.knight;
+  $('status').textContent = !me.alive ? '👻 Ratuşanız alındı — indi müşahidəçisiniz'
+    : k.state === 'moving' ? 'Cəngavər yoldadır…'
+      : k.state === 'arrived' ? 'Rəqib gözlənilir — duel olacaq!'
+        : k.state === 'answering' ? 'Suala cavab verin!'
+          : 'Ərazinizə qonşu xananı seçin (kəsik xətlə göstərilib)';
+}
+
+/** Question window. `onAnswer(index)` sends the choice; the correct option is never known here. */
+export class QuestionWindow {
+  constructor(serverNow, onAnswer) {
+    this.serverNow = serverNow;
+    this.onAnswer = onAnswer;
+    this.current = null;
+    this.hideTimer = null;
+    const tick = () => {
+      this.updateTimer();
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+
+  show(q, playerNames) {
+    clearTimeout(this.hideTimer);
+    this.current = { ...q, start: this.serverNow(), answered: false };
+    const meta = [`Çətinlik: ${'●'.repeat(q.difficulty)}${'○'.repeat(5 - q.difficulty)}`];
+    if (q.duel) meta.push(`⚔ Duel: ${q.opponents.map((id) => playerNames.get(id)).join(', ') || '—'}`);
+    if (q.round > 1) meta.push(`Sual ${q.round}`);
+    if (q.required > 1) meta.push(`Ratuşa: ${q.correctSoFar}/${q.required} düz cavab`);
+    $('q-meta').replaceChildren(...meta.map((m) => Object.assign(document.createElement('span'), { textContent: m })));
+    $('q-text').textContent = q.text;
+    $('q-footer').textContent = q.round > 1 && q.duel ? 'Hər ikiniz düz cavab verdiniz — növbəti sual!' : '';
+    const opts = $('q-options');
+    opts.replaceChildren();
+    q.options.forEach((text, i) => {
+      const b = document.createElement('button');
+      b.textContent = text;
+      b.addEventListener('click', () => this.choose(i, b));
+      opts.appendChild(b);
+    });
+    $('question').hidden = false;
+  }
+
+  choose(index, button) {
+    if (!this.current || this.current.answered) return;
+    this.current.answered = true;
+    this.current.chosen = button;
+    button.classList.add('chosen');
+    [...$('q-options').children].forEach((b) => { b.disabled = true; });
+    if (this.current.duel) $('q-footer').textContent = 'Cavab göndərildi. Rəqib gözlənilir…';
+    this.onAnswer(index);
+  }
+
+  result({ correct }) {
+    if (!this.current) return;
+    this.current.chosen?.classList.add(correct ? 'right' : 'wrong');
+    [...$('q-options').children].forEach((b) => { b.disabled = true; });
+    this.current = null;
+    this.hideTimer = setTimeout(() => this.hide(), 1200);
+  }
+
+  hide() {
+    this.current = null;
+    $('question').hidden = true;
+  }
+
+  updateTimer() {
+    const q = this.current;
+    if (!q) return;
+    const left = Math.max(0, q.deadline - this.serverNow());
+    const total = Math.max(1, q.deadline - q.start);
+    $('q-timer-bar').style.width = `${(left / total) * 100}%`;
+    $('q-timer-bar').style.background = left < 10000 ? 'var(--bad)' : 'var(--accent)';
+  }
+}
+
+export function showEnd(title, text, buttonText, onClose) {
+  $('end-title').textContent = title;
+  $('end-text').textContent = text;
+  $('end-btn').textContent = buttonText;
+  $('end-btn').onclick = () => {
+    $('end').hidden = true;
+    onClose();
+  };
+  $('end').hidden = false;
+}

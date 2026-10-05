@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Team colour is drawn in blue (#2f6fe0 family); the game re-tints blue hues per player. -->
+  <ellipse cx="64" cy="118" rx="52" ry="8" fill="#000" opacity="0.25"/>
+  <!-- side towers -->
+  <rect x="12" y="52" width="24" height="64" fill="#c9c2b4" stroke="#4a4438" stroke-width="3"/>
+  <rect x="92" y="52" width="24" height="64" fill="#c9c2b4" stroke="#4a4438" stroke-width="3"/>
+  <path d="M8 54 L24 30 L40 54 Z" fill="#2f6fe0" stroke="#1b3f86" stroke-width="3"/>
+  <path d="M88 54 L104 30 L120 54 Z" fill="#2f6fe0" stroke="#1b3f86" stroke-width="3"/>
+  <!-- main hall -->
+  <rect x="32" y="62" width="64" height="54" fill="#ddd6c7" stroke="#4a4438" stroke-width="3"/>
+  <path d="M26 64 L64 30 L102 64 Z" fill="#2f6fe0" stroke="#1b3f86" stroke-width="3"/>
+  <!-- stones -->
+  <path d="M32 78 H96 M32 94 H96 M48 62 V78 M80 62 V78 M40 78 V94 M88 78 V94 M56 94 V116 M72 94 V116"
+        stroke="#a8a090" stroke-width="2" fill="none"/>
+  <!-- door + windows -->
+  <path d="M54 116 V96 Q64 84 74 96 V116 Z" fill="#6b4a24" stroke="#3a2a14" stroke-width="3"/>
+  <rect x="18" y="66" width="12" height="14" rx="5" fill="#2b2f36"/>
+  <rect x="98" y="66" width="12" height="14" rx="5" fill="#2b2f36"/>
+  <circle cx="64" cy="50" r="7" fill="#f2c84b" stroke="#4a4438" stroke-width="2"/>
+  <!-- flag -->
+  <rect x="62" y="6" width="3" height="26" fill="#4a4438"/>
+  <path d="M65 7 L88 12 L65 19 Z" fill="#2f6fe0" stroke="#1b3f86" stroke-width="2"/>
+</svg>

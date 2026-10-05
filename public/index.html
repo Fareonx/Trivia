@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="az">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Zəka Döyüşü</title>
+  <link rel="icon" href="assets/knight.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <section id="lobby" class="screen">
+    <div class="card lobby-card">
+      <h1>Zəka Döyüşü</h1>
+      <p class="subtitle">Bilik ilə ərazi qazan, rəqibin Ratuşasını al!</p>
+      <form id="join-form">
+        <label>Adınız <input id="name" maxlength="20" required autocomplete="nickname"></label>
+        <label>Otaq kodu <input id="room" maxlength="8" value="MAIN"></label>
+        <button type="submit">Qoşul</button>
+      </form>
+      <div id="room-panel" hidden>
+        <h2>Otaq: <span id="room-code"></span></h2>
+        <ul id="members"></ul>
+        <button id="start-btn" hidden>Oyunu başlat</button>
+        <p id="lobby-hint" class="hint"></p>
+      </div>
+      <details class="rules">
+        <summary>Qaydalar</summary>
+        <ul>
+          <li>Öz ərazinizə qonşu xananı seçin — cəngavər ora gedir (hər xana 2 saniyə).</li>
+          <li>Çatanda sual çıxır: düz cavab — xana sizindir.</li>
+          <li>Səhv və ya vaxt bitdi — xana 1 dəqiqəlik sizin üçün bağlanır.</li>
+          <li>İki cəngavər eyni xanaya gedirsə — duel!</li>
+          <li>Qızıl və taxta ilə Ratuşanı gücləndirin. Rəqibin Ratuşasını alan bütün ərazisini alır.</li>
+        </ul>
+      </details>
+    </div>
+  </section>
+
+  <section id="game" class="screen" hidden>
+    <canvas id="map"></canvas>
+    <div id="hud">
+      <div class="hud-row">
+        <span class="res"><img src="assets/gold.svg" alt=""> <b id="gold">0</b></span>
+        <span class="res"><img src="assets/wood.svg" alt=""> <b id="wood">0</b></span>
+        <span id="hall-level"></span>
+        <button id="upgrade-btn"></button>
+      </div>
+      <ul id="players"></ul>
+    </div>
+    <div id="status"></div>
+    <div id="toasts"></div>
+
+    <div id="question" class="modal" hidden>
+      <div class="card question-card">
+        <div id="q-meta"></div>
+        <p id="q-text"></p>
+        <div id="q-options"></div>
+        <div class="timer"><div id="q-timer-bar"></div></div>
+        <div id="q-footer"></div>
+      </div>
+    </div>
+
+    <div id="end" class="modal" hidden>
+      <div class="card">
+        <h2 id="end-title"></h2>
+        <p id="end-text"></p>
+        <button id="end-btn">Lobbiyə qayıt</button>
+      </div>
+    </div>
+  </section>
+
+  <script src="/socket.io/socket.io.min.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

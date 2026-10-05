@@ -1,0 +1,24 @@
+{
+  "name": "zeka-doyushu",
+  "version": "0.1.0",
+  "description": "Zəka Döyüşü — multiplayer hex strategy trivia game",
+  "type": "module",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "test": "node --test \"test/**/*.test.js\""
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "express": "^5.2.1",
+    "socket.io": "^4.8.4"
+  },
+  "devDependencies": {
+    "sharp": "^0.35.5"
+  }
+}
