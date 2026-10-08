@@ -18,6 +18,15 @@ button {
   background: var(--accent); color: #1b1f26; font-weight: 600;
 }
 button:disabled { opacity: .5; cursor: default; }
+button.secondary { background: var(--panel-2); color: var(--text); }
+button.secondary:hover:not(:disabled) { background: #3d4757; }
+.icon-btn { margin-left: auto; padding: 2px 8px; background: transparent; color: var(--muted); }
+.icon-btn:hover { color: var(--bad); }
+select {
+  font: inherit; padding: 9px 10px; border-radius: 8px; border: 1px solid #4a5263;
+  background: var(--bg); color: var(--text);
+}
+.bot-controls { display: flex; gap: 8px; margin: 4px 0 12px; }
 input {
   font: inherit; width: 100%; padding: 10px 12px; margin-top: 4px; border-radius: 8px;
   border: 1px solid #4a5263; background: var(--bg); color: var(--text);
@@ -72,3 +81,15 @@ input {
 #q-timer-bar { height: 100%; background: var(--accent); width: 100%; }
 #q-footer { margin-top: 10px; color: var(--muted); font-size: .9rem; min-height: 1.2em; }
 @media (max-width: 480px) { #q-options { grid-template-columns: 1fr; } }
+
+/* Motion */
+.modal:not([hidden]) > .card { animation: pop .22s ease-out; }
+@keyframes pop { from { transform: scale(.92); opacity: 0; } to { transform: none; opacity: 1; } }
+#q-timer-bar.urgent { animation: pulse .5s ease-in-out infinite alternate; }
+@keyframes pulse { from { opacity: 1; } to { opacity: .45; } }
+#q-options button { transition: background .15s, transform .1s; }
+#q-options button:active:not(:disabled) { transform: scale(.97); }
+#q-options button.right, #q-options button.wrong { animation: pop .25s ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

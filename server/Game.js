@@ -26,6 +26,7 @@ export class Game {
         key: k,
         owner: null,
         townHallOf: null,
+        ruin: false,
         questionId: this.bank.draw(c.difficulty),
       });
     }
@@ -123,7 +124,7 @@ export class Game {
     player.gold -= next.cost.gold;
     player.wood -= next.cost.wood;
     player.townHallLevel++;
-    this.emit(null, 'townHallUpgraded', { playerId, level: player.townHallLevel });
+    this.emit(null, 'townHallUpgraded', { playerId, level: player.townHallLevel, key: player.townHall });
     return { ok: true, level: player.townHallLevel };
   }
 
@@ -341,7 +342,10 @@ export class Game {
   eliminate(loser, conqueror, time) {
     for (const cell of this.cells.values()) {
       if (cell.owner === loser.id) cell.owner = conqueror ? conqueror.id : null;
-      if (cell.townHallOf === loser.id) cell.townHallOf = null;
+      if (cell.townHallOf === loser.id) {
+        cell.townHallOf = null;
+        cell.ruin = true;
+      }
     }
     if (conqueror) {
       conqueror.gold += loser.gold;
@@ -424,7 +428,8 @@ export class Game {
         townHallLevels: CONFIG.TOWN_HALL_LEVELS,
       },
       cells: [...this.cells.values()].map((c) => ({
-        key: c.key, q: c.q, r: c.r, difficulty: c.difficulty, resource: c.resource, owner: c.owner, townHallOf: c.townHallOf,
+        key: c.key, q: c.q, r: c.r, difficulty: c.difficulty, resource: c.resource, owner: c.owner,
+        townHallOf: c.townHallOf, ruin: c.ruin,
       })),
       players: [...this.players.values()].map((p) => ({
         id: p.id,
