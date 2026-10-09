@@ -16,10 +16,19 @@
         <label>Adınız <input id="name" maxlength="20" required autocomplete="nickname"></label>
         <label>Otaq kodu <input id="room" maxlength="8" value="MAIN"></label>
         <button type="submit">Qoşul</button>
+        <button type="button" id="solo-btn" class="secondary">🤖 Botla oyna</button>
       </form>
       <div id="room-panel" hidden>
         <h2>Otaq: <span id="room-code"></span></h2>
         <ul id="members"></ul>
+        <div id="bot-controls" class="bot-controls" hidden>
+          <select id="bot-level" aria-label="Botun səviyyəsi">
+            <option value="easy">Asan</option>
+            <option value="medium" selected>Orta</option>
+            <option value="hard">Çətin</option>
+          </select>
+          <button type="button" id="add-bot-btn" class="secondary">+ Bot əlavə et</button>
+        </div>
         <button id="start-btn" hidden>Oyunu başlat</button>
         <p id="lobby-hint" class="hint"></p>
       </div>
@@ -44,6 +53,7 @@
         <span class="res"><img src="assets/wood.svg" alt=""> <b id="wood">0</b></span>
         <span id="hall-level"></span>
         <button id="upgrade-btn"></button>
+        <button id="mute-btn" class="icon-btn" title="Səs"></button>
       </div>
       <ul id="players"></ul>
     </div>

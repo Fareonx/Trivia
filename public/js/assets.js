@@ -71,6 +71,23 @@ function hslToRgb(h, s, l) {
   return [Math.round(f(0) * 255), Math.round(f(8) * 255), Math.round(f(4) * 255)];
 }
 
+// Grey, faded copy used for captured capitals.
+function ruin(source) {
+  const canvas = document.createElement('canvas');
+  canvas.width = source.width;
+  canvas.height = source.height;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(source, 0, 0);
+  const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const px = data.data;
+  for (let i = 0; i < px.length; i += 4) {
+    const grey = Math.round(0.3 * px[i] + 0.59 * px[i + 1] + 0.11 * px[i + 2]) * 0.8;
+    px[i] = grey; px[i + 1] = grey; px[i + 2] = grey;
+  }
+  ctx.putImageData(data, 0, 0);
+  return canvas;
+}
+
 function tint(source, hue) {
   const canvas = document.createElement('canvas');
   canvas.width = source.width;
@@ -90,7 +107,7 @@ function tint(source, hue) {
   return canvas;
 }
 
-/** Loads all sprites. Returns { get(name, color?) → canvas }. */
+/** Loads all sprites. Returns { get(name, color?) → canvas }; color may also be 'ruin' for the Town Hall. */
 export async function loadAssets() {
   const base = {};
   const tinted = {};
@@ -101,6 +118,7 @@ export async function loadAssets() {
     tinted[name] = {};
     for (const [color, { hue }] of Object.entries(TEAM_COLORS)) tinted[name][color] = tint(base[name], hue);
   }
+  tinted.townhall.ruin = ruin(base.townhall);
   return {
     get(name, color) {
       return (color && tinted[name]?.[color]) || base[name];

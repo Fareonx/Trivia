@@ -18,6 +18,7 @@ export const TEXT = {
     not_host: 'Oyunu yalnız otağın sahibi başlada bilər',
     not_alive: 'Siz artıq müşahidəçisiniz',
     game_over: 'Oyun bitib',
+    no_bot: 'Bot tapılmadı',
   },
   correct: 'Düzgün! ✔',
   wrong: 'Səhv cavab. Xana 1 dəqiqəlik sizin üçün bağlandı',
@@ -46,23 +47,37 @@ function dot(color) {
   return span;
 }
 
-export function renderLobby(lobby, you) {
+export const BOT_LEVEL_NAMES = { easy: 'Asan', medium: 'Orta', hard: 'Çətin' };
+
+export function renderLobby(lobby, you, { onRemoveBot }) {
   $('join-form').hidden = true;
   $('room-panel').hidden = false;
   $('room-code').textContent = lobby.code;
   const list = $('members');
   list.replaceChildren();
   const colors = Object.keys(TEAM_COLORS);
+  const isHost = lobby.hostId === you;
   lobby.members.forEach((m, i) => {
     const li = document.createElement('li');
-    li.append(dot(colors[i]), `${m.name}${m.id === lobby.hostId ? ' 👑' : ''}${m.id === you ? ' (siz)' : ''}${m.online ? '' : ' — offline'}`);
+    const label = m.isBot ? `🤖 ${m.name} (${BOT_LEVEL_NAMES[m.level]})`
+      : `${m.name}${m.id === lobby.hostId ? ' 👑' : ''}${m.id === you ? ' (siz)' : ''}${m.online ? '' : ' — offline'}`;
+    li.append(dot(colors[i]), label);
+    if (m.isBot && isHost && !lobby.inGame) {
+      const remove = document.createElement('button');
+      remove.className = 'icon-btn';
+      remove.title = 'Botu çıxar';
+      remove.textContent = '✕';
+      remove.addEventListener('click', () => onRemoveBot(m.id));
+      li.appendChild(remove);
+    }
     list.appendChild(li);
   });
-  const isHost = lobby.hostId === you;
+  $('bot-controls').hidden = !isHost || lobby.inGame;
+  $('add-bot-btn').disabled = lobby.members.length >= 4;
   $('start-btn').hidden = !isHost;
   $('start-btn').disabled = lobby.members.length < 2 || lobby.inGame;
   $('lobby-hint').textContent = lobby.inGame ? 'Oyun gedir…'
-    : lobby.members.length < 2 ? 'Ən azı 2 oyunçu gözlənilir. Dostunuza otaq kodunu göndərin.'
+    : lobby.members.length < 2 ? 'Ən azı 2 oyunçu lazımdır: dostunuza otaq kodunu göndərin və ya bot əlavə edin.'
       : isHost ? 'Hazırsınızsa, oyunu başladın.' : 'Otağın sahibi oyunu başladacaq.';
 }
 
@@ -169,6 +184,7 @@ export class QuestionWindow {
     const total = Math.max(1, q.deadline - q.start);
     $('q-timer-bar').style.width = `${(left / total) * 100}%`;
     $('q-timer-bar').style.background = left < 10000 ? 'var(--bad)' : 'var(--accent)';
+    $('q-timer-bar').classList.toggle('urgent', left < 10000);
   }
 }
 

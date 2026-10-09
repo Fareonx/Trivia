@@ -36,6 +36,18 @@ export const CONFIG = {
 
   // Server tick.
   TICK_MS: 100,
+
+  // Bots: chance of a correct answer is `accuracy − (difficulty − 1) × ACCURACY_DROP_PER_DIFFICULTY`.
+  BOT_LEVELS: {
+    easy: { accuracy: 0.6 },
+    medium: { accuracy: 0.75 },
+    hard: { accuracy: 0.9 },
+  },
+  BOT_ACCURACY_DROP_PER_DIFFICULTY: 0.08,
+  // Pause before picking the next hex, and "thinking" time before answering.
+  BOT_THINK_MS: [1500, 3000],
+  BOT_ANSWER_MS: [4000, 15000],
+  BOT_NAMES: ['Bot Nizami', 'Bot Füzuli', 'Bot Nəsimi'],
 };
 
 export const PLAYER_COLORS = ['blue', 'red', 'green', 'yellow'];

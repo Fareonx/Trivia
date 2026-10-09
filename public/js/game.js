@@ -5,7 +5,8 @@
 //      (re-rendered only when ownership or zoom changes)
 //   2. attackable-hex hints, hover, locks, busy/duel timers
 //   3. resources
-//   4. Town Halls and Knights, sorted by y so lower sprites overlap upper ones
+//   4. Town Halls (or ruins) and Knights, sorted by y so lower sprites overlap upper ones
+//   5. short-lived effects (capture flash, fail cross, dust, upgrade stars) and duel/question timers
 
 import { hexToPixel, pixelToHex, hexCorners, neighborKeys, key as hexKey } from '/shared/hex.js';
 import { TEAM_COLORS } from './assets.js';
@@ -14,14 +15,19 @@ const HEX_SIZE = 36;
 const DIFFICULTY_GREYS = ['#d4d7db', '#b3b8be', '#92989f', '#727880', '#545a62'];
 const MIN_ZOOM = 0.4;
 const MAX_ZOOM = 2.2;
+const EFFECT_MS = { capture: 700, fail: 600, arrive: 450, upgrade: 900 };
 
 export class GameView {
-  constructor(canvas, { assets, serverNow, onCellClick }) {
+  constructor(canvas, { assets, serverNow, onCellClick, onStep = () => {} }) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
     this.assets = assets;
     this.serverNow = serverNow;
     this.onCellClick = onCellClick;
+    this.onStep = onStep;
+    this.effects = [];
+    this.lastStep = null;
+    this.reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
     this.state = null;
     this.cells = new Map();
     this.players = new Map();
@@ -52,6 +58,12 @@ export class GameView {
       this.camera = { x: p.x, y: p.y, zoom: 1 };
       this.centered = true;
     }
+  }
+
+  /** Starts a short animation on a hex: 'capture' | 'fail' | 'arrive' | 'upgrade'. */
+  effect(type, key, { color = '#ffffff' } = {}) {
+    if (!this.cells.has(key)) return;
+    this.effects.push({ type, key, color, start: performance.now(), duration: EFFECT_MS[type] ?? 600 });
   }
 
   // ------------------------------------------------------------------ input
@@ -155,7 +167,7 @@ export class GameView {
       const f = Math.min(1, t - i);
       const a = this.center(k.path[i]);
       const b = this.center(k.path[i + 1]);
-      return { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f, moving: true };
+      return { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f, moving: true, step: Math.floor(t), f };
     }
     return { ...this.center(k.at), moving: false };
   }
@@ -323,6 +335,14 @@ export class GameView {
     // Town Halls and Knights, sorted by y.
     const sprites = [];
     for (const c of this.cells.values()) {
+      if (c.ruin) {
+        const { x, y } = this.center(c.key);
+        sprites.push({ y: y + HEX_SIZE * 0.55, draw: () => {
+          ctx.globalAlpha = 0.6;
+          this.drawSprite(this.assets.get('townhall', 'ruin'), x, y + HEX_SIZE * 0.55, HEX_SIZE * 1.5);
+          ctx.globalAlpha = 1;
+        } });
+      }
       if (!c.townHallOf) continue;
       const owner = this.players.get(c.townHallOf);
       const { x, y } = this.center(c.key);
@@ -341,19 +361,100 @@ export class GameView {
       const onHall = !pos.moving && this.cells.get(p.knight.at)?.townHallOf;
       const dx = (onHall ? HEX_SIZE * 0.5 : 0) + (slot ? HEX_SIZE * 0.4 * (slot % 2 ? 1 : -1) : 0);
       const baseY = pos.y + HEX_SIZE * (onHall ? 0.75 : 0.5);
-      const bob = pos.moving ? Math.abs(Math.sin(now / 120)) * 3 : 0;
+      // Two little hops per hex while walking.
+      const bob = pos.moving && !this.reducedMotion ? Math.abs(Math.sin(pos.f * Math.PI * 2)) * 4 : 0;
+      if (p.id === this.me?.id) this.trackSteps(pos);
       sprites.push({ y: baseY, draw: () => {
         this.drawSprite(this.assets.get('knight', p.color), pos.x + dx, baseY - bob, HEX_SIZE * 1.25);
       } });
     }
     sprites.sort((a, b) => a.y - b.y).forEach((sp) => sp.draw());
 
+    this.drawEffects();
+
     // Busy hexes: duel / question timers, visible to everyone.
     for (const e of this.state.engagements) {
       const { x, y } = this.center(e.target);
       const label = e.phase === 'waiting' ? `⏳ ${formatSeconds(e.deadline - now)}`
         : `${e.duel ? '⚔ ' : '❓ '}${formatSeconds(e.deadline - now)}`;
+      if (e.duel && e.phase === 'question' && !this.reducedMotion) {
+        // Pulsing crossed swords above a running duel.
+        const pulse = 1 + 0.15 * Math.sin(now / 150);
+        ctx.font = `${Math.round(22 * pulse)}px system-ui, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('⚔️', x, y - HEX_SIZE * 1.5);
+      }
       this.drawBadge(x, y - HEX_SIZE * 0.95, label, e.duel ? '#b5179ed0' : '#1b1f26d0');
+    }
+  }
+
+  // Footstep callback each time our own knight enters a new hex.
+  trackSteps(pos) {
+    if (!pos.moving) {
+      this.lastStep = null;
+      return;
+    }
+    if (this.lastStep !== null && pos.step > this.lastStep) this.onStep();
+    this.lastStep = pos.step;
+  }
+
+  drawEffects() {
+    const ctx = this.ctx;
+    const t = performance.now();
+    this.effects = this.effects.filter((e) => t - e.start < e.duration);
+    for (const e of this.effects) {
+      const p = (t - e.start) / e.duration;
+      const { x, y } = this.center(e.key);
+      ctx.save();
+      if (e.type === 'capture') {
+        this.hexPath(ctx, x, y, HEX_SIZE - 1);
+        ctx.globalAlpha = 0.75 * (1 - p);
+        ctx.fillStyle = e.color;
+        ctx.fill();
+        if (!this.reducedMotion) {
+          this.hexPath(ctx, x, y, HEX_SIZE * (1 + p));
+          ctx.globalAlpha = 1 - p;
+          ctx.lineWidth = 4;
+          ctx.strokeStyle = e.color;
+          ctx.stroke();
+        }
+      } else if (e.type === 'fail') {
+        const shake = this.reducedMotion ? 0 : Math.sin(p * 40) * 4 * (1 - p);
+        ctx.globalAlpha = 1 - p * p;
+        ctx.strokeStyle = '#e5484d';
+        ctx.lineWidth = 6;
+        ctx.lineCap = 'round';
+        const r = HEX_SIZE * 0.4;
+        ctx.beginPath();
+        ctx.moveTo(x + shake - r, y - r);
+        ctx.lineTo(x + shake + r, y + r);
+        ctx.moveTo(x + shake + r, y - r);
+        ctx.lineTo(x + shake - r, y + r);
+        ctx.stroke();
+      } else if (e.type === 'arrive') {
+        ctx.fillStyle = '#d8d2c4';
+        for (let i = 0; i < 5; i++) {
+          const a = Math.PI * (0.8 + (i / 4) * 1.4);
+          const d = HEX_SIZE * (0.2 + 0.5 * p);
+          ctx.globalAlpha = 0.6 * (1 - p);
+          ctx.beginPath();
+          ctx.arc(x + Math.cos(a) * d, y + HEX_SIZE * 0.5 - Math.abs(Math.sin(a)) * d * 0.3, 3 + 4 * p, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      } else if (e.type === 'upgrade') {
+        ctx.font = '16px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#f2c84b';
+        ctx.globalAlpha = 1 - p;
+        for (let i = 0; i < 8; i++) {
+          const a = (i / 8) * Math.PI * 2;
+          const d = HEX_SIZE * (0.3 + 1.2 * p);
+          ctx.fillText('★', x + Math.cos(a) * d, y - HEX_SIZE * 0.4 + Math.sin(a) * d);
+        }
+      }
+      ctx.restore();
     }
   }
 }
