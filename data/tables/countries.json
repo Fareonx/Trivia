@@ -1,0 +1,1091 @@
+[
+ {
+  "code": "FR",
+  "name": "Fransa",
+  "capital": "Paris",
+  "continent": "Avropa",
+  "fame": 1,
+  "skipCapital": true,
+  "skipContinent": false
+ },
+ {
+  "code": "DE",
+  "name": "Almaniya",
+  "capital": "Berlin",
+  "continent": "Avropa",
+  "fame": 1,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "IT",
+  "name": "İtaliya",
+  "capital": "Roma",
+  "continent": "Avropa",
+  "fame": 1,
+  "skipCapital": true,
+  "skipContinent": false
+ },
+ {
+  "code": "ES",
+  "name": "İspaniya",
+  "capital": "Madrid",
+  "continent": "Avropa",
+  "fame": 1,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "GB",
+  "name": "Böyük Britaniya",
+  "capital": "London",
+  "continent": "Avropa",
+  "fame": 1,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "RU",
+  "name": "Rusiya",
+  "capital": "Moskva",
+  "continent": "Avropa",
+  "fame": 1,
+  "skipCapital": false,
+  "skipContinent": true
+ },
+ {
+  "code": "PT",
+  "name": "Portuqaliya",
+  "capital": "Lissabon",
+  "continent": "Avropa",
+  "fame": 2,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "NL",
+  "name": "Niderland",
+  "capital": "Amsterdam",
+  "continent": "Avropa",
+  "fame": 2,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "BE",
+  "name": "Belçika",
+  "capital": "Brüssel",
+  "continent": "Avropa",
+  "fame": 2,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "CH",
+  "name": "İsveçrə",
+  "capital": "Bern",
+  "continent": "Avropa",
+  "fame": 3,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "AT",
+  "name": "Avstriya",
+  "capital": "Vyana",
+  "continent": "Avropa",
+  "fame": 2,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "PL",
+  "name": "Polşa",
+  "capital": "Varşava",
+  "continent": "Avropa",
+  "fame": 2,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "GR",
+  "name": "Yunanıstan",
+  "capital": "Afina",
+  "continent": "Avropa",
+  "fame": 1,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "SE",
+  "name": "İsveç",
+  "capital": "Stokholm",
+  "continent": "Avropa",
+  "fame": 2,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "NO",
+  "name": "Norveç",
+  "capital": "Oslo",
+  "continent": "Avropa",
+  "fame": 2,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "FI",
+  "name": "Finlandiya",
+  "capital": "Helsinki",
+  "continent": "Avropa",
+  "fame": 2,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "DK",
+  "name": "Danimarka",
+  "capital": "Kopenhagen",
+  "continent": "Avropa",
+  "fame": 2,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "IE",
+  "name": "İrlandiya",
+  "capital": "Dublin",
+  "continent": "Avropa",
+  "fame": 3,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "CZ",
+  "name": "Çexiya",
+  "capital": "Praqa",
+  "continent": "Avropa",
+  "fame": 2,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "HU",
+  "name": "Macarıstan",
+  "capital": "Budapeşt",
+  "continent": "Avropa",
+  "fame": 2,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "RO",
+  "name": "Rumıniya",
+  "capital": "Buxarest",
+  "continent": "Avropa",
+  "fame": 3,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "BG",
+  "name": "Bolqarıstan",
+  "capital": "Sofiya",
+  "continent": "Avropa",
+  "fame": 3,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "RS",
+  "name": "Serbiya",
+  "capital": "Belqrad",
+  "continent": "Avropa",
+  "fame": 3,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "HR",
+  "name": "Xorvatiya",
+  "capital": "Zaqreb",
+  "continent": "Avropa",
+  "fame": 3,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "UA",
+  "name": "Ukrayna",
+  "capital": "Kiyev",
+  "continent": "Avropa",
+  "fame": 2,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "BY",
+  "name": "Belarus",
+  "capital": "Minsk",
+  "continent": "Avropa",
+  "fame": 3,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "LT",
+  "name": "Litva",
+  "capital": "Vilnüs",
+  "continent": "Avropa",
+  "fame": 3,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "LV",
+  "name": "Latviya",
+  "capital": "Riqa",
+  "continent": "Avropa",
+  "fame": 3,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "EE",
+  "name": "Estoniya",
+  "capital": "Tallin",
+  "continent": "Avropa",
+  "fame": 3,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "SK",
+  "name": "Slovakiya",
+  "capital": "Bratislava",
+  "continent": "Avropa",
+  "fame": 4,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "SI",
+  "name": "Sloveniya",
+  "capital": "Lyublyana",
+  "continent": "Avropa",
+  "fame": 4,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "IS",
+  "name": "İslandiya",
+  "capital": "Reykyavik",
+  "continent": "Avropa",
+  "fame": 3,
+  "skipCapital": true,
+  "skipContinent": false
+ },
+ {
+  "code": "AL",
+  "name": "Albaniya",
+  "capital": "Tirana",
+  "continent": "Avropa",
+  "fame": 4,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "MK",
+  "name": "Şimali Makedoniya",
+  "capital": "Skopye",
+  "continent": "Avropa",
+  "fame": 4,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "BA",
+  "name": "Bosniya və Herseqovina",
+  "capital": "Sarayevo",
+  "continent": "Avropa",
+  "fame": 4,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "ME",
+  "name": "Monteneqro",
+  "capital": "Podqoriça",
+  "continent": "Avropa",
+  "fame": 5,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "MD",
+  "name": "Moldova",
+  "capital": "Kişinyov",
+  "continent": "Avropa",
+  "fame": 4,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "MT",
+  "name": "Malta",
+  "capital": "Valletta",
+  "continent": "Avropa",
+  "fame": 4,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "AD",
+  "name": "Andorra",
+  "capital": "Andorra-la-Velya",
+  "continent": "Avropa",
+  "fame": 5,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "TR",
+  "name": "Türkiyə",
+  "capital": "Ankara",
+  "continent": "Asiya",
+  "fame": 1,
+  "skipCapital": false,
+  "skipContinent": true
+ },
+ {
+  "code": "GE",
+  "name": "Gürcüstan",
+  "capital": "Tbilisi",
+  "continent": "Asiya",
+  "fame": 1,
+  "skipCapital": false,
+  "skipContinent": true
+ },
+ {
+  "code": "AM",
+  "name": "Ermənistan",
+  "capital": "İrəvan",
+  "continent": "Asiya",
+  "fame": 2,
+  "skipCapital": false,
+  "skipContinent": true
+ },
+ {
+  "code": "KZ",
+  "name": "Qazaxıstan",
+  "capital": "Astana",
+  "continent": "Asiya",
+  "fame": 2,
+  "skipCapital": false,
+  "skipContinent": true
+ },
+ {
+  "code": "CY",
+  "name": "Kipr",
+  "capital": "Lefkoşa",
+  "continent": "Asiya",
+  "fame": 4,
+  "skipCapital": false,
+  "skipContinent": true
+ },
+ {
+  "code": "CN",
+  "name": "Çin",
+  "capital": "Pekin",
+  "continent": "Asiya",
+  "fame": 1,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "JP",
+  "name": "Yaponiya",
+  "capital": "Tokio",
+  "continent": "Asiya",
+  "fame": 1,
+  "skipCapital": true,
+  "skipContinent": false
+ },
+ {
+  "code": "IN",
+  "name": "Hindistan",
+  "capital": "Yeni Dehli",
+  "continent": "Asiya",
+  "fame": 2,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "KR",
+  "name": "Cənubi Koreya",
+  "capital": "Seul",
+  "continent": "Asiya",
+  "fame": 2,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "KP",
+  "name": "Şimali Koreya",
+  "capital": "Pxenyan",
+  "continent": "Asiya",
+  "fame": 4,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "IR",
+  "name": "İran",
+  "capital": "Tehran",
+  "continent": "Asiya",
+  "fame": 1,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "IQ",
+  "name": "İraq",
+  "capital": "Bağdad",
+  "continent": "Asiya",
+  "fame": 2,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "SA",
+  "name": "Səudiyyə Ərəbistanı",
+  "capital": "Ər-Riyad",
+  "continent": "Asiya",
+  "fame": 2,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "AE",
+  "name": "Birləşmiş Ərəb Əmirlikləri",
+  "capital": "Əbu-Dabi",
+  "continent": "Asiya",
+  "fame": 3,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "QA",
+  "name": "Qətər",
+  "capital": "Doha",
+  "continent": "Asiya",
+  "fame": 3,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "JO",
+  "name": "İordaniya",
+  "capital": "Amman",
+  "continent": "Asiya",
+  "fame": 3,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "LB",
+  "name": "Livan",
+  "capital": "Beyrut",
+  "continent": "Asiya",
+  "fame": 3,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "SY",
+  "name": "Suriya",
+  "capital": "Dəməşq",
+  "continent": "Asiya",
+  "fame": 3,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "PK",
+  "name": "Pakistan",
+  "capital": "İslamabad",
+  "continent": "Asiya",
+  "fame": 3,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "AF",
+  "name": "Əfqanıstan",
+  "capital": "Kabil",
+  "continent": "Asiya",
+  "fame": 3,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "UZ",
+  "name": "Özbəkistan",
+  "capital": "Daşkənd",
+  "continent": "Asiya",
+  "fame": 2,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "TM",
+  "name": "Türkmənistan",
+  "capital": "Aşqabad",
+  "continent": "Asiya",
+  "fame": 2,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "KG",
+  "name": "Qırğızıstan",
+  "capital": "Bişkek",
+  "continent": "Asiya",
+  "fame": 3,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "TJ",
+  "name": "Tacikistan",
+  "capital": "Düşənbə",
+  "continent": "Asiya",
+  "fame": 3,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "MN",
+  "name": "Monqolustan",
+  "capital": "Ulan-Bator",
+  "continent": "Asiya",
+  "fame": 3,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "TH",
+  "name": "Tailand",
+  "capital": "Banqkok",
+  "continent": "Asiya",
+  "fame": 2,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "VN",
+  "name": "Vyetnam",
+  "capital": "Hanoy",
+  "continent": "Asiya",
+  "fame": 3,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "ID",
+  "name": "İndoneziya",
+  "capital": "Cakarta",
+  "continent": "Asiya",
+  "fame": 3,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "MY",
+  "name": "Malayziya",
+  "capital": "Kuala-Lumpur",
+  "continent": "Asiya",
+  "fame": 3,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "PH",
+  "name": "Filippin",
+  "capital": "Manila",
+  "continent": "Asiya",
+  "fame": 3,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "BD",
+  "name": "Banqladeş",
+  "capital": "Dəkkə",
+  "continent": "Asiya",
+  "fame": 4,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "NP",
+  "name": "Nepal",
+  "capital": "Katmandu",
+  "continent": "Asiya",
+  "fame": 3,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "BT",
+  "name": "Butan",
+  "capital": "Timpu",
+  "continent": "Asiya",
+  "fame": 5,
+  "skipCapital": true,
+  "skipContinent": false
+ },
+ {
+  "code": "MM",
+  "name": "Myanma",
+  "capital": "Neypyido",
+  "continent": "Asiya",
+  "fame": 5,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "KH",
+  "name": "Kamboca",
+  "capital": "Pnompen",
+  "continent": "Asiya",
+  "fame": 4,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "LA",
+  "name": "Laos",
+  "capital": "Vyentyan",
+  "continent": "Asiya",
+  "fame": 5,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "OM",
+  "name": "Oman",
+  "capital": "Məsqət",
+  "continent": "Asiya",
+  "fame": 4,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "YE",
+  "name": "Yəmən",
+  "capital": "Səna",
+  "continent": "Asiya",
+  "fame": 4,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "BH",
+  "name": "Bəhreyn",
+  "capital": "Manama",
+  "continent": "Asiya",
+  "fame": 4,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "EG",
+  "name": "Misir",
+  "capital": "Qahirə",
+  "continent": "Afrika",
+  "fame": 1,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "MA",
+  "name": "Mərakeş",
+  "capital": "Rabat",
+  "continent": "Afrika",
+  "fame": 3,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "LY",
+  "name": "Liviya",
+  "capital": "Tripoli",
+  "continent": "Afrika",
+  "fame": 3,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "NG",
+  "name": "Nigeriya",
+  "capital": "Abuca",
+  "continent": "Afrika",
+  "fame": 3,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "KE",
+  "name": "Keniya",
+  "capital": "Nayrobi",
+  "continent": "Afrika",
+  "fame": 3,
+  "skipCapital": true,
+  "skipContinent": false
+ },
+ {
+  "code": "ET",
+  "name": "Efiopiya",
+  "capital": "Əddis-Əbəbə",
+  "continent": "Afrika",
+  "fame": 3,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "ZA",
+  "name": "Cənubi Afrika Respublikası",
+  "capital": "Pretoriya",
+  "continent": "Afrika",
+  "fame": 4,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "GH",
+  "name": "Qana",
+  "capital": "Akkra",
+  "continent": "Afrika",
+  "fame": 4,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "SN",
+  "name": "Seneqal",
+  "capital": "Dakar",
+  "continent": "Afrika",
+  "fame": 4,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "TZ",
+  "name": "Tanzaniya",
+  "capital": "Dodoma",
+  "continent": "Afrika",
+  "fame": 5,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "UG",
+  "name": "Uqanda",
+  "capital": "Kampala",
+  "continent": "Afrika",
+  "fame": 4,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "AO",
+  "name": "Anqola",
+  "capital": "Luanda",
+  "continent": "Afrika",
+  "fame": 4,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "CM",
+  "name": "Kamerun",
+  "capital": "Yaunde",
+  "continent": "Afrika",
+  "fame": 5,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "SD",
+  "name": "Sudan",
+  "capital": "Xartum",
+  "continent": "Afrika",
+  "fame": 4,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "ZW",
+  "name": "Zimbabve",
+  "capital": "Harare",
+  "continent": "Afrika",
+  "fame": 4,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "MG",
+  "name": "Madaqaskar",
+  "capital": "Antananarivu",
+  "continent": "Afrika",
+  "fame": 5,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "ML",
+  "name": "Mali",
+  "capital": "Bamako",
+  "continent": "Afrika",
+  "fame": 5,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "SO",
+  "name": "Somali",
+  "capital": "Moqadişu",
+  "continent": "Afrika",
+  "fame": 4,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "CD",
+  "name": "Konqo Demokratik Respublikası",
+  "capital": "Kinşasa",
+  "continent": "Afrika",
+  "fame": 4,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "RW",
+  "name": "Ruanda",
+  "capital": "Kiqali",
+  "continent": "Afrika",
+  "fame": 5,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "ZM",
+  "name": "Zambiya",
+  "capital": "Lusaka",
+  "continent": "Afrika",
+  "fame": 5,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "US",
+  "name": "ABŞ",
+  "capital": "Vaşinqton",
+  "continent": "Şimali Amerika",
+  "fame": 1,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "CA",
+  "name": "Kanada",
+  "capital": "Ottava",
+  "continent": "Şimali Amerika",
+  "fame": 2,
+  "skipCapital": true,
+  "skipContinent": false
+ },
+ {
+  "code": "MX",
+  "name": "Meksika",
+  "capital": "Mexiko",
+  "continent": "Şimali Amerika",
+  "fame": 2,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "CU",
+  "name": "Kuba",
+  "capital": "Havana",
+  "continent": "Şimali Amerika",
+  "fame": 2,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "JM",
+  "name": "Yamayka",
+  "capital": "Kinqston",
+  "continent": "Şimali Amerika",
+  "fame": 4,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "CR",
+  "name": "Kosta-Rika",
+  "capital": "San-Xose",
+  "continent": "Şimali Amerika",
+  "fame": 4,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "HN",
+  "name": "Honduras",
+  "capital": "Tequsiqalpa",
+  "continent": "Şimali Amerika",
+  "fame": 5,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "NI",
+  "name": "Nikaraqua",
+  "capital": "Manaqua",
+  "continent": "Şimali Amerika",
+  "fame": 5,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "DO",
+  "name": "Dominikan Respublikası",
+  "capital": "Santo-Dominqo",
+  "continent": "Şimali Amerika",
+  "fame": 4,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "HT",
+  "name": "Haiti",
+  "capital": "Port-o-Prens",
+  "continent": "Şimali Amerika",
+  "fame": 5,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "AR",
+  "name": "Argentina",
+  "capital": "Buenos-Ayres",
+  "continent": "Cənubi Amerika",
+  "fame": 2,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "CL",
+  "name": "Çili",
+  "capital": "Santyaqo",
+  "continent": "Cənubi Amerika",
+  "fame": 3,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "PE",
+  "name": "Peru",
+  "capital": "Lima",
+  "continent": "Cənubi Amerika",
+  "fame": 3,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "CO",
+  "name": "Kolumbiya",
+  "capital": "Boqota",
+  "continent": "Cənubi Amerika",
+  "fame": 3,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "VE",
+  "name": "Venesuela",
+  "capital": "Karakas",
+  "continent": "Cənubi Amerika",
+  "fame": 3,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "EC",
+  "name": "Ekvador",
+  "capital": "Kito",
+  "continent": "Cənubi Amerika",
+  "fame": 4,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "UY",
+  "name": "Uruqvay",
+  "capital": "Montevideo",
+  "continent": "Cənubi Amerika",
+  "fame": 4,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "PY",
+  "name": "Paraqvay",
+  "capital": "Asunsyon",
+  "continent": "Cənubi Amerika",
+  "fame": 5,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "AU",
+  "name": "Avstraliya",
+  "capital": "Kanberra",
+  "continent": "Okeaniya",
+  "fame": 3,
+  "skipCapital": true,
+  "skipContinent": false
+ },
+ {
+  "code": "NZ",
+  "name": "Yeni Zelandiya",
+  "capital": "Vellinqton",
+  "continent": "Okeaniya",
+  "fame": 3,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "FJ",
+  "name": "Fici",
+  "capital": "Suva",
+  "continent": "Okeaniya",
+  "fame": 5,
+  "skipCapital": false,
+  "skipContinent": false
+ },
+ {
+  "code": "PG",
+  "name": "Papua-Yeni Qvineya",
+  "capital": "Port-Morsbi",
+  "continent": "Okeaniya",
+  "fame": 5,
+  "skipCapital": false,
+  "skipContinent": false
+ }
+]

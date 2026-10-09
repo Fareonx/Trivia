@@ -2,7 +2,11 @@
 
 export const CONFIG = {
   MIN_PLAYERS: 2,
-  MAX_PLAYERS: 4,
+  MAX_PLAYERS: 8,
+
+  // A player who drops out of a running match / the lobby has this long to come back.
+  RECONNECT_GRACE_MS: 60000,
+  LOBBY_GRACE_MS: 30000,
 
   // Movement: walking one hex takes this long.
   MOVE_MS_PER_HEX: 1000,
@@ -23,6 +27,10 @@ export const CONFIG = {
   // Chance that a question already asked in this match is picked again while fresh ones remain.
   QUESTION_REPEAT_CHANCE: 0.07,
 
+  // Share of questions taken from the table-generated set (capitals, elements, arithmetic)
+  // when hand-written ones are available too.
+  GENERATED_QUESTION_SHARE: 0.3,
+
   // Resource hexes pay their owner +RESOURCE_AMOUNT every RESOURCE_INTERVAL_MS.
   RESOURCE_INTERVAL_MS: 5000,
   RESOURCE_AMOUNT: 1,
@@ -41,8 +49,8 @@ export const CONFIG = {
   MODES: ['capital', 'territory'],
 
   // Map generation.
-  MAP_RADIUS_BY_PLAYERS: { 2: 6, 3: 7, 4: 8 },
-  HOLE_RATIO: 0.12,
+  // About this many hexes per player (2 players → 50, 8 → 200) keeps a match around 10–15 minutes.
+  CELLS_PER_PLAYER: 25,
   RESOURCE_RATIO: 0.12,
 
   // Server tick.
@@ -58,10 +66,20 @@ export const CONFIG = {
   // Pause before picking the next hex, and "thinking" time before answering.
   BOT_THINK_MS: [1500, 3000],
   BOT_ANSWER_MS: [4000, 15000],
-  BOT_NAMES: ['Bot Nizami', 'Bot Füzuli', 'Bot Nəsimi'],
+  // Bots upgrade their Town Hall only after this many minutes (per level) and with a reserve
+  // of resources ≥ cost × reserve, plus a random delay — so they do not out-build people.
+  BOT_UPGRADE: {
+    minMinutes: {
+      2: { easy: 4, medium: 3, hard: 2 },
+      3: { easy: 9, medium: 7, hard: 5 },
+    },
+    reserve: 1.5,
+    maxDelayMs: 60000,
+  },
+  BOT_NAMES: ['Bot Nizami', 'Bot Füzuli', 'Bot Nəsimi', 'Bot Xətai', 'Bot Vaqif', 'Bot Sabir', 'Bot Cavid'],
 };
 
-export const PLAYER_COLORS = ['blue', 'red', 'green', 'yellow'];
+export const PLAYER_COLORS = ['blue', 'red', 'green', 'yellow', 'purple', 'orange', 'teal', 'pink'];
 
 export function answerMsForDifficulty(difficulty) {
   const t = (difficulty - 1) / 4;

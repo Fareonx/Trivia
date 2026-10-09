@@ -22,6 +22,10 @@ export const TEAM_COLORS = {
   red: { hue: 0, css: '#d93a3a' },
   green: { hue: 130, css: '#2fa84f' },
   yellow: { hue: 46, css: '#e0b52f' },
+  purple: { hue: 280, css: '#8e44ad' },
+  orange: { hue: 26, css: '#e67e22' },
+  teal: { hue: 172, css: '#16a085' },
+  pink: { hue: 330, css: '#e84393' },
 };
 
 // Hues counted as "team colour" in the source art.

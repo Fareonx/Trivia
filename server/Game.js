@@ -1,6 +1,6 @@
 import { CONFIG, PLAYER_COLORS, answerMsForDifficulty } from './config.js';
 import { generateMap } from './mapgen.js';
-import { neighborKeys, findPath, parseKey, distance } from '../shared/hex.js';
+import { neighborKeys, findPath } from '../shared/hex.js';
 
 /**
  * Authoritative game state for one match. Time is always passed in (`now`, ms)
@@ -26,6 +26,7 @@ export class Game {
     this.winner = null;
     this.events = [];
     this.lastIncome = now;
+    this.startedAt = now;
 
     // Deal the categories round-robin over the hexes in random order, so each gets an equal share.
     const keys = [...this.map.cells.keys()];
@@ -45,7 +46,9 @@ export class Game {
         owner: null,
         townHallOf: null,
         ruin: false,
-        questionId: this.bank.draw(category, c.difficulty, [], this.categories),
+        // Assigned on the first attack and kept until the hex is captured (anti-farm).
+        questionId: null,
+        prevQuestionId: null,
       });
     }
 
@@ -286,6 +289,9 @@ export class Game {
     const hall = this.townHallLevelOf(cell);
     const difficulty = Math.max(cell.difficulty, hall?.difficulty ?? 0);
     // An ordinary hex opens with its own question; duel follow-ups and Town Halls draw fresh, harder ones.
+    if (eng.round === 1 && !hall && !cell.questionId) {
+      cell.questionId = this.bank.draw(cell.category, cell.difficulty, [cell.prevQuestionId], this.categories);
+    }
     const questionId = eng.round === 1 && !hall
       ? cell.questionId
       : this.bank.draw(cell.category, difficulty, [cell.questionId, eng.question?.id], this.categories);
@@ -369,7 +375,9 @@ export class Game {
   capture(player, cell, time) {
     const previousOwner = cell.owner ? this.players.get(cell.owner) : null;
     cell.owner = player.id;
-    cell.questionId = this.bank.draw(cell.category, cell.difficulty, [cell.questionId], this.categories);
+    // The next attacker gets a different question (drawn when that attack starts).
+    cell.prevQuestionId = cell.questionId;
+    cell.questionId = null;
     const knight = player.knight;
     knight.at = cell.key;
     Object.assign(knight, { state: 'idle', path: null, target: null, from: null, stepIndex: 0 });
@@ -388,24 +396,14 @@ export class Game {
   }
 
   /**
-   * An idle knight must stand on its own land. If it does not, it steps to an
-   * adjacent own hex (the one closest to its Town Hall); with none around it is
-   * surrounded, dies, and comes back at its Town Hall after RESPAWN_MS.
+   * An idle knight must stand on its own land. If the hex under it was taken,
+   * it dies and comes back at its Town Hall after RESPAWN_MS — so a defender
+   * can be removed from its capital's doorstep.
    */
   settleKnight(player, time) {
     const knight = player.knight;
     if (!player.alive || knight.state !== 'idle') return;
     if (this.cells.get(knight.at)?.owner === player.id) return;
-    const home = parseKey(player.townHall);
-    const retreat = neighborKeys(knight.at)
-      .filter((n) => this.cells.get(n)?.owner === player.id)
-      .sort((a, b) => distance(parseKey(a), home) - distance(parseKey(b), home))[0];
-    if (retreat) {
-      const from = knight.at;
-      knight.at = retreat;
-      this.emit(null, 'knightRetreated', { playerId: player.id, from, at: retreat });
-      return;
-    }
     Object.assign(knight, { state: 'respawning', respawnAt: time + CONFIG.RESPAWN_MS });
     this.emit(null, 'knightKilled', { playerId: player.id, at: knight.at, respawnAt: knight.respawnAt });
   }

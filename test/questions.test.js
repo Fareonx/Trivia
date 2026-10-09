@@ -1,15 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { QuestionBank, loadQuestions, loadCategories } from '../server/questions.js';
+import { QuestionBank, loadQuestions, loadAllQuestions, loadCategories } from '../server/questions.js';
+import { generatedQuestions } from '../server/generators.js';
 import { mulberry32 } from '../server/mapgen.js';
 
-const questions = loadQuestions();
+const handWritten = loadQuestions();
+const questions = loadAllQuestions();
 const categories = loadCategories();
 
-test('every category has enough questions at every difficulty', () => {
+test('every category has at least 75 hand-written questions, at every difficulty', () => {
   for (const { id } of categories) {
-    const own = questions.filter((q) => q.category === id);
-    assert.ok(own.length >= 20, `${id} has ${own.length}`);
+    const own = handWritten.filter((q) => q.category === id);
+    assert.ok(own.length >= 75, `${id} has ${own.length}`);
     for (let d = 1; d <= 5; d++) assert.ok(own.some((q) => q.difficulty === d), `${id} lacks difficulty ${d}`);
   }
 });
@@ -46,6 +48,28 @@ test('draw falls back to the nearest difficulty, then to other allowed categorie
   assert.equal(bank.draw('x', 5), 'a');
   assert.equal(bank.draw('x', 1, ['a'], ['x', 'y']), 'b');
   assert.equal(bank.draw('missing', 1, [], ['y']), 'b');
+});
+
+test('generated questions are well-formed and stay a minority of draws', () => {
+  const generated = generatedQuestions();
+  assert.ok(generated.length > 500, `only ${generated.length} generated`);
+  for (const q of generated) {
+    assert.ok(q.generated);
+    assert.equal(q.wrong.length, 3, q.id);
+    assert.equal(new Set([q.correct, ...q.wrong]).size, 4, `${q.id}: ${q.correct} / ${q.wrong}`);
+  }
+  // Arithmetic answers are actually right.
+  for (const q of generated.filter((g) => g.category === 'math' && /[+−×]/.test(g.text) && !g.text.includes('²'))) {
+    const expr = q.text.replace('Hesablayın: ', '').replace(' = ?', '').replace(/×/g, '*').replace(/−/g, '-');
+    assert.equal(String(Function(`return ${expr}`)()), q.correct, q.text);
+  }
+  // A whole match asks far fewer questions of one category than it has hand-written ones.
+  const bank = new QuestionBank(questions, { rand: mulberry32(5) });
+  let gen = 0;
+  const draws = 60;
+  for (let i = 0; i < draws; i++) if (bank.get(bank.draw('geography', 1 + (i % 5))).generated) gen++;
+  assert.ok(gen / draws <= 0.4, `generated share ${(gen / draws * 100).toFixed(1)}%`);
+  assert.ok(gen / draws >= 0.15, 'generated questions still show up');
 });
 
 test('repeats are rare while fresh questions remain', () => {

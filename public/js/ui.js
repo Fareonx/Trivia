@@ -13,7 +13,7 @@ export const TEXT = {
     no_resources: 'Resurs çatışmır',
     max_level: 'Ratuşa maksimum səviyyədədir',
     game_running: 'Bu otaqda oyun artıq gedir',
-    room_full: 'Otaq doludur (maks. 4 oyunçu)',
+    room_full: 'Otaq doludur (maks. 8 oyunçu)',
     not_enough_players: 'Ən azı 2 oyunçu lazımdır',
     not_host: 'Oyunu yalnız otağın sahibi başlada bilər',
     not_alive: 'Siz artıq müşahidəçisiniz',
@@ -24,9 +24,8 @@ export const TEXT = {
     bad_mode: 'Naməlum oyun rejimi',
     no_categories: 'Ən azı bir kateqoriya seçin',
   },
-  killed: 'Cəngavəriniz mühasirədə həlak oldu — 10 saniyə sonra Ratuşada qayıdacaq',
+  killed: 'Dayandığınız xana alındı — cəngavəriniz həlak oldu, 10 saniyə sonra Ratuşada qayıdacaq',
   respawned: 'Cəngavəriniz Ratuşada yenidən hazırdır',
-  retreated: 'Dayandığınız xana alındı — cəngavər geri çəkildi',
   modes: {
     capital: 'Bütün rəqib Ratuşalarını alan qalib gəlir.',
     territory: 'Boş xana qalmayanda və ya otaq sahibi oyunu bitirəndə ən çox xanası olan qalib gəlir. Ratuşanı almaq da olar.',
@@ -125,7 +124,8 @@ export function renderLobby(lobby, you, { onRemoveBot, onSettings }) {
   });
   renderSettings(lobby, isHost && !lobby.inGame, onSettings);
   $('bot-controls').hidden = !isHost || lobby.inGame;
-  $('add-bot-btn').disabled = lobby.members.length >= 4;
+  $('add-bot-btn').disabled = lobby.members.length >= lobby.maxPlayers;
+  $('member-count').textContent = `${lobby.members.length}/${lobby.maxPlayers}`;
   $('start-btn').hidden = !isHost;
   $('start-btn').disabled = lobby.members.length < 2 || lobby.inGame;
   $('lobby-hint').textContent = lobby.inGame ? 'Oyun gedir…'

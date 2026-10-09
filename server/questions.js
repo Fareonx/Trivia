@@ -1,5 +1,6 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { CONFIG } from './config.js';
+import { generatedQuestions } from './generators.js';
 
 const DATA_DIR = new URL('../data/', import.meta.url);
 
@@ -8,7 +9,7 @@ export function loadCategories(path = new URL('categories.json', DATA_DIR)) {
   return JSON.parse(readFileSync(path, 'utf8'));
 }
 
-/** All questions from every data/questions/<category>.json file. */
+/** Hand-written questions from every data/questions/<category>.json file. */
 export function loadQuestions(dir = new URL('questions/', DATA_DIR)) {
   return readdirSync(dir)
     .filter((f) => f.endsWith('.json'))
@@ -16,16 +17,27 @@ export function loadQuestions(dir = new URL('questions/', DATA_DIR)) {
     .flatMap((f) => JSON.parse(readFileSync(new URL(f, dir), 'utf8')));
 }
 
+/** Hand-written plus table-generated questions (capitals, elements, arithmetic). */
+export function loadAllQuestions() {
+  return [...loadQuestions(), ...generatedQuestions()];
+}
+
 /**
  * Hands out questions by category and difficulty. Questions already asked in
  * this match come back only rarely (`repeatChance`), or once their pool has
- * run out. When a category has nothing at the wanted difficulty, the nearest
- * difficulty is used, then the other allowed categories.
+ * run out. Generated questions are picked only `generatedShare` of the time
+ * when hand-written ones are available too. When a category has nothing at the
+ * wanted difficulty, the nearest difficulty is used, then the other allowed categories.
  */
 export class QuestionBank {
-  constructor(questions, { rand = Math.random, repeatChance = CONFIG.QUESTION_REPEAT_CHANCE } = {}) {
+  constructor(questions, {
+    rand = Math.random,
+    repeatChance = CONFIG.QUESTION_REPEAT_CHANCE,
+    generatedShare = CONFIG.GENERATED_QUESTION_SHARE,
+  } = {}) {
     this.rand = rand;
     this.repeatChance = repeatChance;
+    this.generatedShare = generatedShare;
     this.byId = new Map(questions.map((q) => [q.id, q]));
     // Map<category, Map<difficulty, id[]>>
     this.pools = new Map();
@@ -61,8 +73,16 @@ export class QuestionBank {
   draw(category, difficulty, excludeIds = [], allowedCategories = null) {
     const exclude = new Set(excludeIds);
     for (const ids of this.poolsFor(category, difficulty, allowedCategories)) {
-      const pool = ids.filter((id) => !exclude.has(id));
-      if (!pool.length) continue;
+      const allowed = ids.filter((id) => !exclude.has(id));
+      if (!allowed.length) continue;
+      const generated = allowed.filter((id) => this.byId.get(id).generated);
+      const written = allowed.filter((id) => !this.byId.get(id).generated);
+      const useGenerated = !written.length || (generated.length > 0 && this.rand() < this.generatedShare);
+      const isFresh = (id) => !this.used.has(id);
+      let pool = useGenerated ? generated : written;
+      const other = useGenerated ? written : generated;
+      // Rather switch sources than repeat a question.
+      if (!pool.some(isFresh) && other.some(isFresh)) pool = other;
       const fresh = pool.filter((id) => !this.used.has(id));
       const seen = pool.filter((id) => this.used.has(id));
       const repeat = !fresh.length || (seen.length > 0 && this.rand() < this.repeatChance);
