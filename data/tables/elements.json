@@ -1,0 +1,272 @@
+[
+ {
+  "symbol": "H",
+  "name": "Hidrogen",
+  "fame": 1,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "He",
+  "name": "Helium",
+  "fame": 2,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "Li",
+  "name": "Litium",
+  "fame": 3,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "C",
+  "name": "Karbon",
+  "fame": 1,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "N",
+  "name": "Azot",
+  "fame": 2,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "O",
+  "name": "Oksigen",
+  "fame": 1,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "F",
+  "name": "Flüor",
+  "fame": 3,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "Ne",
+  "name": "Neon",
+  "fame": 3,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "Na",
+  "name": "Natrium",
+  "fame": 3,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "Mg",
+  "name": "Maqnezium",
+  "fame": 3,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "Al",
+  "name": "Alüminium",
+  "fame": 2,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "Si",
+  "name": "Silisium",
+  "fame": 3,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "P",
+  "name": "Fosfor",
+  "fame": 3,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "S",
+  "name": "Kükürd",
+  "fame": 3,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "Cl",
+  "name": "Xlor",
+  "fame": 2,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "Ar",
+  "name": "Arqon",
+  "fame": 4,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "K",
+  "name": "Kalium",
+  "fame": 3,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "Ca",
+  "name": "Kalsium",
+  "fame": 2,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "Fe",
+  "name": "Dəmir",
+  "fame": 2,
+  "skipSymbol": true
+ },
+ {
+  "symbol": "Cu",
+  "name": "Mis",
+  "fame": 2,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "Zn",
+  "name": "Sink",
+  "fame": 3,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "Ag",
+  "name": "Gümüş",
+  "fame": 2,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "Au",
+  "name": "Qızıl",
+  "fame": 2,
+  "skipSymbol": true
+ },
+ {
+  "symbol": "Hg",
+  "name": "Civə",
+  "fame": 3,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "Pb",
+  "name": "Qurğuşun",
+  "fame": 3,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "Sn",
+  "name": "Qalay",
+  "fame": 4,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "Ni",
+  "name": "Nikel",
+  "fame": 3,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "U",
+  "name": "Uran",
+  "fame": 3,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "Pt",
+  "name": "Platin",
+  "fame": 3,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "Ti",
+  "name": "Titan",
+  "fame": 3,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "Cr",
+  "name": "Xrom",
+  "fame": 4,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "Mn",
+  "name": "Manqan",
+  "fame": 4,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "Co",
+  "name": "Kobalt",
+  "fame": 4,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "I",
+  "name": "Yod",
+  "fame": 3,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "Br",
+  "name": "Brom",
+  "fame": 4,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "Ra",
+  "name": "Radium",
+  "fame": 4,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "W",
+  "name": "Volfram",
+  "fame": 5,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "Sb",
+  "name": "Sürmə",
+  "fame": 5,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "As",
+  "name": "Arsen",
+  "fame": 4,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "Ba",
+  "name": "Barium",
+  "fame": 4,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "Kr",
+  "name": "Kripton",
+  "fame": 5,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "Xe",
+  "name": "Ksenon",
+  "fame": 5,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "Rn",
+  "name": "Radon",
+  "fame": 5,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "Po",
+  "name": "Polonium",
+  "fame": 5,
+  "skipSymbol": false
+ },
+ {
+  "symbol": "Bi",
+  "name": "Bismut",
+  "fame": 5,
+  "skipSymbol": false
+ }
+]

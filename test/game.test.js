@@ -43,11 +43,18 @@ test('correct answer captures the hex and replaces its question', () => {
   g.moveKnight('p0', '3,0', 0);
   g.update(2 * MOVE);
   const oldQuestion = g.cells.get('3,0').questionId;
+  assert.ok(oldQuestion, 'the hex got its question when the attack started');
   assert.ok(answer(g, 'p0', '3,0', true, 5000).ok);
   assert.equal(g.cells.get('3,0').owner, 'p0');
-  assert.notEqual(g.cells.get('3,0').questionId, oldQuestion);
   assert.equal(g.players.get('p0').knight.at, '3,0');
   assert.equal(g.players.get('p0').knight.state, 'idle');
+
+  // p1 counter-attacks from a neighbouring hex: it must get a different question.
+  g.cells.get('4,0').owner = 'p1';
+  g.players.get('p1').knight.at = '4,0';
+  g.moveKnight('p1', '3,0', 6000);
+  g.update(6000 + MOVE);
+  assert.notEqual(g.engagements.get('3,0').question.id, oldQuestion);
 });
 
 test('wrong answer: hex locked for that player only, question kept, knight steps back', () => {

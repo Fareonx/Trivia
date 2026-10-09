@@ -17,6 +17,7 @@ export class Bot {
     this.rand = rand;
     this.nextThink = null;
     this.pending = null;
+    this.upgradeAt = null;
   }
 
   accuracy(difficulty) {
@@ -29,8 +30,7 @@ export class Bot {
     const me = game.players.get(this.id);
     if (!me?.alive) return;
 
-    const next = CONFIG.TOWN_HALL_LEVELS[me.townHallLevel + 1];
-    if (next && me.gold >= next.cost.gold && me.wood >= next.cost.wood) game.upgradeTownHall(this.id);
+    this.considerUpgrade(game, me, now);
 
     const knight = me.knight;
     if (knight.state === 'answering') {
@@ -47,6 +47,22 @@ export class Bot {
       this.nextThink = null;
       this.attack(game, now);
     }
+  }
+
+  // Bots save up and wait a while before upgrading, so people are not out-built.
+  considerUpgrade(game, me, now) {
+    const nextLevel = me.townHallLevel + 1;
+    const next = CONFIG.TOWN_HALL_LEVELS[nextLevel];
+    if (!next) return;
+    const { minMinutes, reserve, maxDelayMs } = CONFIG.BOT_UPGRADE;
+    const earliest = game.startedAt + minMinutes[nextLevel][this.level] * 60000;
+    const saved = me.gold >= next.cost.gold * reserve && me.wood >= next.cost.wood * reserve;
+    if (now < earliest || !saved) {
+      this.upgradeAt = null;
+      return;
+    }
+    if (this.upgradeAt === null) this.upgradeAt = now + this.rand() * maxDelayMs;
+    if (now >= this.upgradeAt && game.upgradeTownHall(this.id).ok) this.upgradeAt = null;
   }
 
   answer(game, target, now) {

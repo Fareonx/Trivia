@@ -4,7 +4,7 @@ import { Game } from '../server/Game.js';
 import { QuestionBank } from '../server/questions.js';
 import { CONFIG } from '../server/config.js';
 import { key } from '../shared/hex.js';
-import { MOVE, makeGame, stripMap, run, answer } from './helpers.js';
+import { MOVE, makeGame, stripMap, run, answer, questions } from './helpers.js';
 
 const capture = (g, playerId, k, time = 0) => g.capture(g.players.get(playerId), g.cells.get(k), time);
 
@@ -23,7 +23,7 @@ test('hexes get only the enabled categories, in roughly equal shares', () => {
   const counts = { a: 0, c: 0 };
   for (const cell of g.cells.values()) {
     counts[cell.category]++;
-    assert.equal(g.bank.get(cell.questionId).category, cell.category);
+    assert.equal(cell.questionId, null, 'questions are drawn on the first attack, not up front');
   }
   assert.deepEqual(Object.keys(counts).sort(), ['a', 'c']);
   assert.equal(counts.a, counts.c);
@@ -43,14 +43,14 @@ test('a level-1 Town Hall asks a difficulty-4 question', () => {
   assert.equal(q.data.required, 1);
 });
 
-test('a knight whose hex is captured steps back to a neighbouring own hex', () => {
+test('a knight whose hex is captured dies even with its own land next to it', () => {
   const g = makeGame(14, [1, 12]);
   g.players.get('p0').knight.at = '2,0';
-  capture(g, 'p1', '2,0');
+  capture(g, 'p1', '2,0', 500);
   const knight = g.players.get('p0').knight;
-  assert.equal(knight.state, 'idle');
-  assert.equal(g.cells.get(knight.at).owner, 'p0');
-  assert.ok(g.drainEvents().some((e) => e.type === 'knightRetreated'));
+  assert.equal(knight.state, 'respawning');
+  assert.equal(knight.respawnAt, 500 + CONFIG.RESPAWN_MS);
+  assert.ok(g.drainEvents().some((e) => e.type === 'knightKilled'));
 });
 
 test('a surrounded knight dies and comes back at its Town Hall after 10 seconds', () => {
@@ -129,4 +129,14 @@ test('taking a capital still eliminates the player in territory mode', () => {
   assert.equal(g.players.get('p1').alive, false);
   assert.equal(g.phase, 'over');
   assert.equal(g.winner, 'p0');
+});
+
+test('eight players start with eight different colours and Town Halls', () => {
+  const players = Array.from({ length: 8 }, (_, i) => ({ id: `p${i}`, name: `P${i}` }));
+  const g = new Game({ players, questionBank: new QuestionBank(questions()), seed: 3, now: 0 });
+  const all = [...g.players.values()];
+  assert.equal(new Set(all.map((p) => p.color)).size, 8);
+  assert.equal(new Set(all.map((p) => p.townHall)).size, 8);
+  for (const p of all) assert.equal(g.cells.get(p.townHall).townHallOf, p.id);
+  assert.ok(Math.abs(g.cells.size - 200) <= 20);
 });

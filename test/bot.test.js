@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Bot } from '../server/Bot.js';
 import { Game } from '../server/Game.js';
-import { QuestionBank, loadQuestions } from '../server/questions.js';
+import { QuestionBank, loadAllQuestions } from '../server/questions.js';
 import { generateMap, mulberry32 } from '../server/mapgen.js';
 import { CONFIG } from '../server/config.js';
 import { neighborKeys } from '../shared/hex.js';
@@ -57,14 +57,24 @@ test('a bot that answers wrong is locked out, and answers before the deadline', 
   assert.equal(owned(g, 'p0'), 5);
 });
 
-test('bot upgrades its Town Hall when it can afford it', () => {
+test('bot upgrades its Town Hall only after the minimum time and with a reserve', () => {
   const g = makeGame(14, [1, 12]);
   const p = g.players.get('p0');
+  const bot = new Bot('p0', 'medium', () => 0);
+  const minutes = CONFIG.BOT_UPGRADE.minMinutes[2].medium;
+  p.gold = 500;
+  p.wood = 500;
+  bot.update(g, minutes * 60000 - 1000);
+  assert.equal(p.townHallLevel, 1, 'too early');
   p.gold = 60;
   p.wood = 60;
-  new Bot('p0', 'medium', mulberry32(2)).update(g, 0);
+  bot.update(g, minutes * 60000);
+  assert.equal(p.townHallLevel, 1, 'no reserve yet');
+  p.gold = 80;
+  p.wood = 80;
+  bot.update(g, minutes * 60000 + 100);
   assert.equal(p.townHallLevel, 2);
-  assert.equal(p.gold, 10);
+  assert.equal(p.gold, 30);
 });
 
 test('bot answers each duel round only once', () => {
@@ -79,17 +89,17 @@ test('bot answers each duel round only once', () => {
   assert.equal(calls, 1);
 });
 
-function simulate(mode, seed) {
+function simulate(mode, seed, levels = ['hard', 'easy']) {
   const rand = mulberry32(seed);
   const game = new Game({
-    players: [{ id: 'hard', name: 'Hard' }, { id: 'easy', name: 'Easy' }],
-    questionBank: new QuestionBank(loadQuestions(), { rand }),
-    map: generateMap(2, seed),
+    players: levels.map((level, i) => ({ id: `${level}-${i}`, name: level })),
+    questionBank: new QuestionBank(loadAllQuestions(), { rand }),
+    map: generateMap(levels.length, seed),
     settings: { mode },
     now: 0,
     rand,
   });
-  const bots = [new Bot('hard', 'hard', rand), new Bot('easy', 'easy', rand)];
+  const bots = levels.map((level, i) => new Bot(`${level}-${i}`, level, rand));
   const LIMIT = 3 * 60 * 60 * 1000;
   let t = 0;
   let gameOver = null;
@@ -117,7 +127,12 @@ function simulate(mode, seed) {
 test('bot vs bot: a capital match runs to a winner without breaking any rule', () => {
   const { game, winner } = simulate('capital', 2024);
   assert.equal(owned(game, winner.id), game.cells.size - owned(game, null));
-  assert.ok(CONFIG.BOT_LEVELS[game.winner]);
+  assert.ok(CONFIG.BOT_LEVELS[game.winner.split('-')[0]]);
+});
+
+test('bot vs bot: four bots finish a match on a 100-hex map', () => {
+  const { game } = simulate('capital', 31, ['hard', 'medium', 'medium', 'easy']);
+  assert.ok(Math.abs(game.cells.size - 100) <= 10);
 });
 
 test('bot vs bot: a territory match ends with the biggest empire winning', () => {

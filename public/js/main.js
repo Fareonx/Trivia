@@ -26,14 +26,28 @@ function showScreen(name) {
   $('game').hidden = name !== 'game';
 }
 
+// Storage can be unavailable (private mode, blocked site data); the game still works without it.
+const store = {
+  get(area, k) { try { return window[area].getItem(k); } catch { return null; } },
+  set(area, k, v) { try { window[area].setItem(k, v); } catch { /* ignore */ } },
+  remove(area, k) { try { window[area].removeItem(k); } catch { /* ignore */ } },
+};
+
+// The seat we hold ({name, room}); re-joined automatically after every reconnect.
+function savedSeat() {
+  try { return JSON.parse(store.get('sessionStorage', 'zd_seat')); } catch { return null; }
+}
+
 async function join(name, room) {
   const res = await net.call('join', { name, room, token: net.token });
   if (!res.ok) {
     toast(errorText(res.error), 'bad');
+    if (savedSeat()?.room === room) store.remove('sessionStorage', 'zd_seat');
     return false;
   }
   you = res.you;
-  localStorage.setItem('zd_name', name);
+  store.set('localStorage', 'zd_name', name);
+  store.set('sessionStorage', 'zd_seat', JSON.stringify({ name, room: res.code }));
   return true;
 }
 
@@ -43,7 +57,52 @@ async function callOrToast(event, payload) {
   return res.ok;
 }
 
-$('name').value = localStorage.getItem('zd_name') ?? '';
+$('name').value = store.get('localStorage', 'zd_name') ?? '';
+// Invite links look like https://…/?otaq=CODE
+const invited = new URLSearchParams(window.location.search).get('otaq');
+if (invited) $('room').value = invited.toUpperCase();
+
+$('invite-btn').addEventListener('click', async () => {
+  const link = `${window.location.origin}/?otaq=${encodeURIComponent($('room-code').textContent)}`;
+  try {
+    await navigator.clipboard.writeText(link);
+    toast('Dəvət linki kopyalandı — dostlarınıza göndərin', 'ok');
+  } catch {
+    window.prompt('Dəvət linkini kopyalayın:', link);
+  }
+});
+
+// Open rooms on this server, refreshed while the join form is visible.
+async function refreshRooms() {
+  if ($('join-form').hidden || !net.socket.connected) return;
+  const rooms = await net.call('listRooms');
+  const list = $('room-list');
+  list.replaceChildren(...rooms.map((r) => {
+    const li = document.createElement('li');
+    const label = document.createElement('span');
+    label.textContent = `${r.code} — ${r.players}/${r.max} · ${r.inGame ? 'oyun gedir' : 'gözləyir'}`;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'secondary';
+    btn.textContent = 'Qoşul';
+    btn.disabled = r.inGame || r.players >= r.max;
+    btn.addEventListener('click', () => {
+      const name = $('name').value.trim();
+      if (!name) {
+        $('name').focus();
+        toast('Əvvəlcə adınızı yazın', 'bad');
+        return;
+      }
+      $('room').value = r.code;
+      join(name, r.code);
+    });
+    li.append(label, btn);
+    return li;
+  }));
+  $('rooms-panel').hidden = rooms.length === 0;
+}
+setInterval(refreshRooms, 4000);
+
 $('join-form').addEventListener('submit', (e) => {
   e.preventDefault();
   join($('name').value, $('room').value);
@@ -70,15 +129,25 @@ $('upgrade-btn').addEventListener('click', async () => {
   if (res.ok) play('upgrade');
 });
 
-// After a page refresh sessionStorage still has our seat — rejoin silently.
+// After every (re)connect — page refresh, network blip, server restart — take our seat back.
 net.socket.on('connect', () => {
-  const name = localStorage.getItem('zd_name');
-  const room = sessionStorage.getItem('zd_room');
-  if (you === null && name && room) join(name, room);
+  $('offline-banner').hidden = true;
+  const seat = savedSeat();
+  if (seat) join(seat.name, seat.room);
+  else refreshRooms();
+});
+net.socket.on('disconnect', () => {
+  $('offline-banner').hidden = false;
 });
 
 net.socket.on('lobby', (lobby) => {
-  sessionStorage.setItem('zd_room', lobby.code);
+  // The server restarted while we were playing: that match is gone, back to the lobby.
+  if (!lobby.inGame && lastPhase === 'playing') {
+    lastPhase = null;
+    questionWindow.hide();
+    showScreen('lobby');
+    toast('Server yenidən başladı — oyun dayandı. Yenidən başlada bilərsiniz.', 'bad');
+  }
   hostId = lobby.hostId;
   setCategories(lobby.categories);
   renderLobby(lobby, you, {
@@ -174,10 +243,8 @@ net.socket.on('event', ({ type, data }) => {
         play('respawn');
       }
       break;
-    case 'knightRetreated':
-      if (data.playerId === you) toast(TEXT.retreated, 'bad');
-      break;
     case 'gameOver': {
+      lastPhase = 'over';
       if (data.winner === you) play('victory');
       questionWindow.hide();
       const result = data.winner ? `Qalib: ${names.get(data.winner)}` : 'Heç-heçə — qalib yoxdur';

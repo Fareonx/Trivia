@@ -13,8 +13,28 @@ export function mulberry32(seed) {
   };
 }
 
-// Which corners of the hexagon each player count spawns on.
-const SPAWN_CORNERS = { 2: [0, 3], 3: [0, 2, 4], 4: [0, 1, 3, 4] };
+// Hexes at exactly `radius` steps from the origin, walking once around the ring.
+export function ringKeys(radius) {
+  if (radius === 0) return [key(0, 0)];
+  const out = [];
+  let q = DIRECTIONS[4].q * radius;
+  let r = DIRECTIONS[4].r * radius;
+  for (let side = 0; side < 6; side++) {
+    for (let step = 0; step < radius; step++) {
+      out.push(key(q, r));
+      q += DIRECTIONS[side].q;
+      r += DIRECTIONS[side].r;
+    }
+  }
+  return out;
+}
+
+// Smallest hexagon that still leaves room for some holes around `target` hexes.
+export function radiusFor(target) {
+  let radius = 2;
+  while (0.9 * (3 * radius * radius + 3 * radius + 1) < target) radius++;
+  return radius;
+}
 
 function isConnected(keys) {
   if (keys.size === 0) return true;
@@ -38,14 +58,16 @@ function pick(rand, arr) {
 }
 
 /**
- * Generates a hexagon-shaped map with holes (chokepoints), difficulty 1–5 per
- * hex and resource hexes. Returns { radius, seed, cells, spawns } where
- * `cells` is a Map<key, {q, r, difficulty, resource}> (holes are simply absent)
- * and `spawns` holds one Town Hall key per player.
+ * Generates a hexagon-shaped map of about CELLS_PER_PLAYER hexes per player,
+ * with holes (chokepoints), difficulty 1–5 per hex and resource hexes.
+ * Returns { radius, seed, cells, spawns } where `cells` is a
+ * Map<key, {q, r, difficulty, resource}> (holes are simply absent) and
+ * `spawns` holds one Town Hall key per player, spread evenly around the edge.
  */
 export function generateMap(playerCount, seed = Date.now()) {
   const rand = mulberry32(seed);
-  const radius = CONFIG.MAP_RADIUS_BY_PLAYERS[playerCount] ?? CONFIG.MAP_RADIUS_BY_PLAYERS[4];
+  const target = CONFIG.CELLS_PER_PLAYER * playerCount;
+  const radius = radiusFor(target);
   const origin = { q: 0, r: 0 };
 
   const all = new Set();
@@ -55,8 +77,9 @@ export function generateMap(playerCount, seed = Date.now()) {
     }
   }
 
-  const spawnRing = radius - 1;
-  const spawns = SPAWN_CORNERS[playerCount].map((i) => key(DIRECTIONS[i].q * spawnRing, DIRECTIONS[i].r * spawnRing));
+  const ring = ringKeys(radius - 1);
+  const offset = Math.floor(rand() * ring.length);
+  const spawns = Array.from({ length: playerCount }, (_, i) => ring[(offset + Math.floor((i * ring.length) / playerCount)) % ring.length]);
   const spawnCoords = spawns.map(parseKey);
   const distToSpawn = (k) => Math.min(...spawnCoords.map((s) => distance(s, parseKey(k))));
 
@@ -65,15 +88,16 @@ export function generateMap(playerCount, seed = Date.now()) {
 
   // Grow hole clusters while the walkable area stays connected.
   const cells = new Set(all);
-  const targetHoles = Math.floor(all.size * CONFIG.HOLE_RATIO);
+  const targetHoles = Math.max(0, all.size - target);
   let holes = 0;
   let attempts = 0;
-  while (holes < targetHoles && attempts < 500) {
+  while (holes < targetHoles && attempts < 2000) {
     attempts++;
     const candidates = [...cells].filter((k) => !protectedKeys.has(k));
     if (!candidates.length) break;
     const cluster = [pick(rand, candidates)];
-    const size = 2 + Math.floor(rand() * 4);
+    // Clusters of 2–5 make chokepoints; single holes fill the remainder when clusters no longer fit.
+    const size = Math.min(targetHoles - holes, attempts > 500 ? 1 : 2 + Math.floor(rand() * 4));
     while (cluster.length < size) {
       const options = neighborKeys(pick(rand, cluster)).filter(
         (n) => cells.has(n) && !protectedKeys.has(n) && !cluster.includes(n),

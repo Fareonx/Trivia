@@ -308,14 +308,13 @@ export class GameView {
       ctx.stroke();
     }
 
-    // Our own locks with a countdown.
-    for (const [k, until] of Object.entries(this.state.locks)) {
-      if (until <= now || !this.cells.has(k)) continue;
+    // Our own locked hexes are darkened here; their countdown badge is drawn above the sprites.
+    const locks = Object.entries(this.state.locks).filter(([k, until]) => until > now && this.cells.has(k));
+    for (const [k] of locks) {
       const { x, y } = this.center(k);
       this.hexPath(ctx, x, y, HEX_SIZE - 1);
       ctx.fillStyle = '#00000066';
       ctx.fill();
-      this.drawBadge(x, y - 4, `🔒 ${formatSeconds(until - now)}`, '#e5484dd0');
     }
 
     // Path preview for our walking knight.
@@ -387,6 +386,13 @@ export class GameView {
     sprites.sort((a, b) => a.y - b.y).forEach((sp) => sp.draw());
 
     this.drawEffects();
+
+    // Lock countdowns on top of everything, so a Town Hall sprite cannot hide them.
+    for (const [k, until] of locks) {
+      const { x, y } = this.center(k);
+      const onHall = this.cells.get(k).townHallOf;
+      this.drawBadge(x, y - (onHall ? HEX_SIZE * 1.75 : 4), `🔒 ${formatSeconds(until - now)}`, '#e5484dd0');
+    }
 
     // Busy hexes: duel / question timers, visible to everyone.
     for (const e of this.state.engagements) {

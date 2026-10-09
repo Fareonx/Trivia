@@ -111,3 +111,18 @@ input {
 #stop-btn { padding: 6px 10px; font-size: .85rem; }
 .standings { padding-left: 20px; display: grid; gap: 4px; }
 .standings li.winner { color: var(--accent); font-weight: 600; }
+
+/* Friends: rooms, invite, connection */
+.offline-banner {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50; padding: 8px 16px; text-align: center;
+  background: var(--bad); color: #fff; font-weight: 600;
+}
+.rooms-panel { margin-top: 16px; }
+.rooms-panel h3 { margin: 0 0 8px; font-size: 1rem; color: var(--muted); }
+#room-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+#room-list li { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+#room-list button { padding: 6px 12px; }
+.room-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.room-head h2 { margin: 12px 0 4px; }
+.room-head small { color: var(--muted); font-weight: 400; font-size: .9rem; }
+#invite-btn { padding: 6px 12px; font-size: .9rem; }

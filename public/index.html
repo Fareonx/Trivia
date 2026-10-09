@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div id="offline-banner" class="offline-banner" hidden>Bağlantı kəsildi — yenidən qoşulur…</div>
   <section id="lobby" class="screen">
     <div class="card lobby-card">
       <h1>Zəka Döyüşü</h1>
@@ -18,8 +19,16 @@
         <button type="submit">Qoşul</button>
         <button type="button" id="solo-btn" class="secondary">🤖 Botla oyna</button>
       </form>
+      <div id="rooms-panel" class="rooms-panel" hidden>
+        <h3>Açıq otaqlar</h3>
+        <ul id="room-list"></ul>
+      </div>
       <div id="room-panel" hidden>
-        <h2>Otaq: <span id="room-code"></span></h2>
+        <div class="room-head">
+          <h2>Otaq: <span id="room-code"></span> <small id="member-count"></small></h2>
+          <button type="button" id="invite-btn" class="secondary">🔗 Dəvət linki</button>
+        </div>
+        <p class="hint">Dostlarınız eyni otaq kodunu yazmalı və ya dəvət linkini açmalıdır.</p>
         <ul id="members"></ul>
         <div id="bot-controls" class="bot-controls" hidden>
           <select id="bot-level" aria-label="Botun səviyyəsi">
@@ -49,7 +58,7 @@
           <li>Hər xananın üstündə onun sual kateqoriyası görünür. Çatanda sual çıxır: düz cavab — xana sizindir.</li>
           <li>Səhv və ya vaxt bitdi — xana 1 dəqiqəlik sizin üçün bağlanır.</li>
           <li>İki cəngavər eyni xanaya gedirsə — duel!</li>
-          <li>Cəngavərin dayandığı xananı rəqib alsa, o qonşu xananıza çəkilir. Mühasirədədirsə, həlak olur və 10 saniyə sonra Ratuşada qayıdır.</li>
+          <li>Cəngavərin dayandığı xananı rəqib alsa, cəngavər həlak olur və 10 saniyə sonra Ratuşada qayıdır.</li>
           <li>Qızıl və taxta ilə Ratuşanı gücləndirin: hər səviyyədə suallar çətinləşir və çoxalır. Rəqibin Ratuşasını alan bütün ərazisini alır.</li>
           <li><b>Paytaxtları tut:</b> bütün Ratuşaları alan qalib gəlir. <b>Ərazi:</b> boş xana qalmayanda və ya otaq sahibi oyunu bitirəndə ən çox xanası olan qalib gəlir.</li>
         </ul>
