@@ -5,7 +5,7 @@ export const CONFIG = {
   MAX_PLAYERS: 4,
 
   // Movement: walking one hex takes this long.
-  MOVE_MS_PER_HEX: 2000,
+  MOVE_MS_PER_HEX: 1000,
 
   // Answer timer depends on hex difficulty: 40s at difficulty 1 → 30s at difficulty 5.
   ANSWER_MS_EASY: 40000,
@@ -17,17 +17,28 @@ export const CONFIG = {
   // A knight that arrives first waits at most this long for a rival heading to the same hex.
   DUEL_WAIT_MS: 10000,
 
+  // A knight whose hex is captured while it is surrounded dies and returns to its Town Hall after this long.
+  RESPAWN_MS: 10000,
+
+  // Chance that a question already asked in this match is picked again while fresh ones remain.
+  QUESTION_REPEAT_CHANCE: 0.07,
+
   // Resource hexes pay their owner +RESOURCE_AMOUNT every RESOURCE_INTERVAL_MS.
   RESOURCE_INTERVAL_MS: 5000,
   RESOURCE_AMOUNT: 1,
 
   // Town Hall levels. `cost` is what upgrading TO that level costs.
-  // answerMs: overrides the attacker's answer timer; questions: correct answers needed in a row.
+  // difficulty: minimum question difficulty; answerMs: caps the attacker's timer;
+  // questions: correct answers needed in a row.
   TOWN_HALL_LEVELS: {
-    1: { cost: null, answerMs: null, questions: 1 },
-    2: { cost: { gold: 50, wood: 50 }, answerMs: 20000, questions: 1 },
-    3: { cost: { gold: 120, wood: 120 }, answerMs: 20000, questions: 2 },
+    1: { cost: null, difficulty: 4, answerMs: null, questions: 1 },
+    2: { cost: { gold: 50, wood: 50 }, difficulty: 5, answerMs: 20000, questions: 2 },
+    3: { cost: { gold: 120, wood: 120 }, difficulty: 5, answerMs: 15000, questions: 3 },
   },
+
+  // 'capital': win by taking every other Town Hall.
+  // 'territory': also ends when no neutral hex is left or the host stops it; most hexes wins.
+  MODES: ['capital', 'territory'],
 
   // Map generation.
   MAP_RADIUS_BY_PLAYERS: { 2: 6, 3: 7, 4: 8 },

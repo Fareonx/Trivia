@@ -124,21 +124,23 @@ test('duel: both wrong → both lose, hex keeps its owner', () => {
 });
 
 test('duel: late rival is stopped after the wait limit and the first answers solo', () => {
-  const g = makeGame(14, [1, 12]);
+  const g = makeGame(20, [1, 18]);
   g.moveKnight('p0', '3,0', 0);
-  // Give p1 a long road of its own hexes along row 1 towards 3,0 (10 steps = 20s).
-  for (let q = 3; q <= 11; q++) g.cells.get(key(q, 1)).owner = 'p1';
+  // Give p1 a long road of its own hexes along row 1 towards 3,0 (16 steps).
+  for (let q = 3; q <= 17; q++) g.cells.get(key(q, 1)).owner = 'p1';
   const res = g.moveKnight('p1', '3,0', 0);
   assert.ok(res.ok);
-  assert.equal(res.path.length - 1, 10);
-  run(g, 0, 2 * MOVE + CONFIG.DUEL_WAIT_MS);
+  const waitEnds = 2 * MOVE + CONFIG.DUEL_WAIT_MS;
+  const stoppedAt = Math.floor(waitEnds / MOVE);
+  assert.ok(res.path.length - 1 > stoppedAt, 'p1 cannot make it in time');
+  run(g, 0, waitEnds);
   const eng = g.engagements.get('3,0');
   assert.equal(eng.phase, 'question');
   assert.ok(!eng.duel);
   assert.deepEqual(eng.participants, ['p0']);
   assert.equal(g.players.get('p1').knight.state, 'idle');
-  // Stopped part-way along its road, 7 hexes in (14s), not at the target.
-  assert.equal(g.players.get('p1').knight.at, res.path[7]);
+  // Stopped part-way along its road, not at the target.
+  assert.equal(g.players.get('p1').knight.at, res.path[stoppedAt]);
 });
 
 test('knight stops when a hex on its road is taken by an enemy', () => {
@@ -179,11 +181,13 @@ test('Town Hall upgrades cost resources and make the capital harder to take', ()
   g.drainEvents();
   g.update(MOVE);
   const q = g.drainEvents().find((e) => e.type === 'question');
-  assert.equal(q.data.deadline, MOVE + 20000);
-  assert.equal(q.data.required, 2);
+  assert.equal(q.data.deadline, MOVE + 15000);
+  assert.equal(q.data.required, 3);
+  assert.equal(q.data.difficulty, 5, 'Town Hall questions are the hardest');
   answer(g, 'p0', '4,0', true, MOVE + 100);
-  assert.equal(g.cells.get('4,0').owner, 'p1', 'one correct answer is not enough at level 3');
   answer(g, 'p0', '4,0', true, MOVE + 200);
+  assert.equal(g.cells.get('4,0').owner, 'p1', 'two correct answers are not enough at level 3');
+  answer(g, 'p0', '4,0', true, MOVE + 300);
   assert.equal(g.cells.get('4,0').owner, 'p0');
 });
 

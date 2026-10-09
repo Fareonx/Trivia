@@ -29,17 +29,29 @@
           </select>
           <button type="button" id="add-bot-btn" class="secondary">+ Bot əlavə et</button>
         </div>
+        <fieldset id="settings-panel" class="settings">
+          <legend>Oyun rejimi</legend>
+          <div class="mode-row">
+            <label><input type="radio" name="mode" value="capital"> 🏰 Paytaxtları tut</label>
+            <label><input type="radio" name="mode" value="territory"> 🗺️ Ərazi</label>
+          </div>
+          <p id="mode-hint" class="hint"></p>
+          <legend>Sual kateqoriyaları</legend>
+          <div id="category-chips" class="chips"></div>
+        </fieldset>
         <button id="start-btn" hidden>Oyunu başlat</button>
         <p id="lobby-hint" class="hint"></p>
       </div>
       <details class="rules">
         <summary>Qaydalar</summary>
         <ul>
-          <li>Öz ərazinizə qonşu xananı seçin — cəngavər ora gedir (hər xana 2 saniyə).</li>
-          <li>Çatanda sual çıxır: düz cavab — xana sizindir.</li>
+          <li>Öz ərazinizə qonşu xananı seçin — cəngavər ora gedir (hər xana 1 saniyə).</li>
+          <li>Hər xananın üstündə onun sual kateqoriyası görünür. Çatanda sual çıxır: düz cavab — xana sizindir.</li>
           <li>Səhv və ya vaxt bitdi — xana 1 dəqiqəlik sizin üçün bağlanır.</li>
           <li>İki cəngavər eyni xanaya gedirsə — duel!</li>
-          <li>Qızıl və taxta ilə Ratuşanı gücləndirin. Rəqibin Ratuşasını alan bütün ərazisini alır.</li>
+          <li>Cəngavərin dayandığı xananı rəqib alsa, o qonşu xananıza çəkilir. Mühasirədədirsə, həlak olur və 10 saniyə sonra Ratuşada qayıdır.</li>
+          <li>Qızıl və taxta ilə Ratuşanı gücləndirin: hər səviyyədə suallar çətinləşir və çoxalır. Rəqibin Ratuşasını alan bütün ərazisini alır.</li>
+          <li><b>Paytaxtları tut:</b> bütün Ratuşaları alan qalib gəlir. <b>Ərazi:</b> boş xana qalmayanda və ya otaq sahibi oyunu bitirəndə ən çox xanası olan qalib gəlir.</li>
         </ul>
       </details>
     </div>
@@ -54,6 +66,10 @@
         <span id="hall-level"></span>
         <button id="upgrade-btn"></button>
         <button id="mute-btn" class="icon-btn" title="Səs"></button>
+      </div>
+      <div class="hud-row" id="territory-row" hidden>
+        <span id="neutral-count"></span>
+        <button id="stop-btn" class="secondary" hidden>Oyunu bitir</button>
       </div>
       <ul id="players"></ul>
     </div>
@@ -74,6 +90,7 @@
       <div class="card">
         <h2 id="end-title"></h2>
         <p id="end-text"></p>
+        <ol id="end-standings" class="standings"></ol>
         <button id="end-btn">Lobbiyə qayıt</button>
       </div>
     </div>

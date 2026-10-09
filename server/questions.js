@@ -1,24 +1,39 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
+import { CONFIG } from './config.js';
 
-const DEFAULT_PATH = new URL('../data/questions.json', import.meta.url);
+const DATA_DIR = new URL('../data/', import.meta.url);
 
-export function loadQuestions(path = DEFAULT_PATH) {
+/** [{ id, name, icon }] in display order. */
+export function loadCategories(path = new URL('categories.json', DATA_DIR)) {
   return JSON.parse(readFileSync(path, 'utf8'));
 }
 
+/** All questions from every data/questions/<category>.json file. */
+export function loadQuestions(dir = new URL('questions/', DATA_DIR)) {
+  return readdirSync(dir)
+    .filter((f) => f.endsWith('.json'))
+    .sort()
+    .flatMap((f) => JSON.parse(readFileSync(new URL(f, dir), 'utf8')));
+}
+
 /**
- * Hands out questions by difficulty. Questions already used in this match are
- * skipped until the pool for a difficulty runs dry, then that pool is recycled.
- * When a difficulty has no questions at all, the nearest difficulty is used.
+ * Hands out questions by category and difficulty. Questions already asked in
+ * this match come back only rarely (`repeatChance`), or once their pool has
+ * run out. When a category has nothing at the wanted difficulty, the nearest
+ * difficulty is used, then the other allowed categories.
  */
 export class QuestionBank {
-  constructor(questions, rand = Math.random) {
+  constructor(questions, { rand = Math.random, repeatChance = CONFIG.QUESTION_REPEAT_CHANCE } = {}) {
     this.rand = rand;
+    this.repeatChance = repeatChance;
     this.byId = new Map(questions.map((q) => [q.id, q]));
+    // Map<category, Map<difficulty, id[]>>
     this.pools = new Map();
     for (const q of questions) {
-      if (!this.pools.has(q.difficulty)) this.pools.set(q.difficulty, []);
-      this.pools.get(q.difficulty).push(q.id);
+      if (!this.pools.has(q.category)) this.pools.set(q.category, new Map());
+      const byDifficulty = this.pools.get(q.category);
+      if (!byDifficulty.has(q.difficulty)) byDifficulty.set(q.difficulty, []);
+      byDifficulty.get(q.difficulty).push(q.id);
     }
     this.used = new Set();
   }
@@ -27,21 +42,32 @@ export class QuestionBank {
     return this.byId.get(id);
   }
 
-  // Returns a question id for the difficulty, never one of `excludeIds`.
-  draw(difficulty, excludeIds = []) {
+  categories() {
+    return [...this.pools.keys()];
+  }
+
+  // Candidate pools, best match first.
+  *poolsFor(category, difficulty, allowedCategories) {
+    const byNearest = (byDifficulty) => [...byDifficulty.keys()]
+      .sort((a, b) => Math.abs(a - difficulty) - Math.abs(b - difficulty) || b - a)
+      .map((d) => byDifficulty.get(d));
+    if (this.pools.has(category)) yield* byNearest(this.pools.get(category));
+    for (const other of allowedCategories ?? this.categories()) {
+      if (other !== category && this.pools.has(other)) yield* byNearest(this.pools.get(other));
+    }
+  }
+
+  /** Returns a question id; never one of `excludeIds`. */
+  draw(category, difficulty, excludeIds = [], allowedCategories = null) {
     const exclude = new Set(excludeIds);
-    const difficulties = [...this.pools.keys()].sort(
-      (a, b) => Math.abs(a - difficulty) - Math.abs(b - difficulty) || a - b,
-    );
-    for (const d of difficulties) {
-      const pool = this.pools.get(d).filter((id) => !exclude.has(id));
+    for (const ids of this.poolsFor(category, difficulty, allowedCategories)) {
+      const pool = ids.filter((id) => !exclude.has(id));
       if (!pool.length) continue;
-      let fresh = pool.filter((id) => !this.used.has(id));
-      if (!fresh.length) {
-        pool.forEach((id) => this.used.delete(id));
-        fresh = pool;
-      }
-      const id = fresh[Math.floor(this.rand() * fresh.length)];
+      const fresh = pool.filter((id) => !this.used.has(id));
+      const seen = pool.filter((id) => this.used.has(id));
+      const repeat = !fresh.length || (seen.length > 0 && this.rand() < this.repeatChance);
+      const from = repeat ? seen : fresh;
+      const id = from[Math.floor(this.rand() * from.length)];
       this.used.add(id);
       return id;
     }
@@ -56,6 +82,6 @@ export class QuestionBank {
       const j = Math.floor(this.rand() * (i + 1));
       [options[i], options[j]] = [options[j], options[i]];
     }
-    return { id, text: q.text, options, correctIndex: options.indexOf(q.correct) };
+    return { id, category: q.category, text: q.text, options, correctIndex: options.indexOf(q.correct) };
   }
 }

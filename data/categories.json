@@ -1,0 +1,62 @@
+[
+  {
+    "id": "geography",
+    "name": "Coğrafiya",
+    "icon": "🌍"
+  },
+  {
+    "id": "history",
+    "name": "Tarix",
+    "icon": "🏛️"
+  },
+  {
+    "id": "science",
+    "name": "Elm",
+    "icon": "🔬"
+  },
+  {
+    "id": "nature",
+    "name": "Təbiət və heyvanlar",
+    "icon": "🌿"
+  },
+  {
+    "id": "space",
+    "name": "Kosmos",
+    "icon": "🚀"
+  },
+  {
+    "id": "sport",
+    "name": "İdman",
+    "icon": "⚽"
+  },
+  {
+    "id": "screen_music",
+    "name": "Kino və musiqi",
+    "icon": "🎬"
+  },
+  {
+    "id": "tech",
+    "name": "Texnologiya",
+    "icon": "💻"
+  },
+  {
+    "id": "math",
+    "name": "Riyaziyyat və məntiq",
+    "icon": "🧮"
+  },
+  {
+    "id": "food",
+    "name": "Yemək",
+    "icon": "🍽️"
+  },
+  {
+    "id": "art_books",
+    "name": "İncəsənət və kitablar",
+    "icon": "🎨"
+  },
+  {
+    "id": "azerbaijan",
+    "name": "Azərbaycan",
+    "icon": "🇦🇿"
+  }
+]

@@ -78,6 +78,11 @@ const SOUNDS = {
   upgrade: (t) => [392, 523, 659, 784, 1047].forEach((f, i) => tone(f, t + i * 0.06, 0.3, { type: 'sine', volume: 0.45 })),
   victory: (t) => [[523, 0], [523, 0.15], [523, 0.3], [698, 0.45], [880, 0.75], [1047, 1.0]]
     .forEach(([f, d]) => tone(f, t + d, d === 1.0 ? 0.8 : 0.2, { type: 'triangle', volume: 0.55 })),
+  death: (t) => {
+    tone(330, t, 0.5, { type: 'triangle', volume: 0.4, slideTo: 110 });
+    noise(t, 0.3, { volume: 0.4, filter: 300 });
+  },
+  respawn: (t) => [262, 392, 523].forEach((f, i) => tone(f, t + i * 0.07, 0.2, { type: 'sine', volume: 0.4 })),
   defeat: (t) => [392, 349, 311, 262].forEach((f, i) => tone(f, t + i * 0.25, 0.4, { type: 'triangle', volume: 0.45 })),
 };
 

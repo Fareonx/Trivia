@@ -1,7 +1,9 @@
 import { connect } from './net.js';
 import { loadAssets } from './assets.js';
 import { GameView } from './game.js';
-import { TEXT, toast, errorText, renderLobby, renderHud, QuestionWindow, showEnd } from './ui.js';
+import {
+  TEXT, toast, errorText, renderLobby, renderHud, QuestionWindow, showEnd, setCategories, categoryInfo,
+} from './ui.js';
 import { play, isMuted, setMuted } from './sound.js';
 
 const $ = (id) => document.getElementById(id);
@@ -11,6 +13,7 @@ const assetsReady = loadAssets();
 let you = null;
 let view = null;
 let lastPhase = null;
+let hostId = null;
 const names = new Map();
 
 const questionWindow = new QuestionWindow(net.serverNow, async (index) => {
@@ -76,7 +79,16 @@ net.socket.on('connect', () => {
 
 net.socket.on('lobby', (lobby) => {
   sessionStorage.setItem('zd_room', lobby.code);
-  renderLobby(lobby, you, { onRemoveBot: (id) => callOrToast('removeBot', { id }) });
+  hostId = lobby.hostId;
+  setCategories(lobby.categories);
+  renderLobby(lobby, you, {
+    onRemoveBot: (id) => callOrToast('removeBot', { id }),
+    onSettings: (settings) => callOrToast('settings', settings),
+  });
+});
+
+$('stop-btn').addEventListener('click', () => {
+  if (window.confirm('Oyunu bitirmək istəyirsiniz? Ən çox xanası olan qalib gələcək.')) callOrToast('stopGame');
 });
 
 net.socket.on('state', async (s) => {
@@ -85,6 +97,7 @@ net.socket.on('state', async (s) => {
   if (!view) {
     view = new GameView($('map'), {
       assets,
+      categoryIcon: (id) => categoryInfo(id).icon,
       serverNow: net.serverNow,
       onCellClick: async (cell) => {
         const res = await net.call('move', { target: cell.key });
@@ -100,7 +113,7 @@ net.socket.on('state', async (s) => {
   }
   lastPhase = s.phase;
   view.setState(s);
-  renderHud(s);
+  renderHud(s, { isHost: hostId === you });
 });
 
 net.socket.on('event', ({ type, data }) => {
@@ -148,13 +161,33 @@ net.socket.on('event', ({ type, data }) => {
         toast(`${names.get(data.playerId)} məğlub oldu${data.by ? ` — qalib: ${names.get(data.by)}` : ''}`);
       }
       break;
-    case 'gameOver':
+    case 'knightKilled':
+      view?.effect('death', data.at);
+      if (data.playerId === you) {
+        toast(TEXT.killed, 'bad');
+        play('death');
+      }
+      break;
+    case 'knightRespawned':
+      if (data.playerId === you) {
+        toast(TEXT.respawned, 'ok');
+        play('respawn');
+      }
+      break;
+    case 'knightRetreated':
+      if (data.playerId === you) toast(TEXT.retreated, 'bad');
+      break;
+    case 'gameOver': {
       if (data.winner === you) play('victory');
       questionWindow.hide();
-      showEnd(data.winner === you ? '🏆 Qələbə!' : 'Oyun bitdi',
-        data.winner ? `Qalib: ${names.get(data.winner)}` : 'Qalib yoxdur',
-        'Lobbiyə qayıt', () => showScreen('lobby'));
+      const result = data.winner ? `Qalib: ${names.get(data.winner)}` : 'Heç-heçə — qalib yoxdur';
+      const standings = data.standings?.map((s) => ({
+        name: names.get(s.playerId), cells: s.cells, winner: s.playerId === data.winner,
+      }));
+      showEnd(data.winner === you ? '🏆 Qələbə!' : 'Oyun bitdi', `${TEXT.reasons[data.reason] ?? ''} ${result}`,
+        'Lobbiyə qayıt', () => showScreen('lobby'), standings);
       break;
+    }
     default:
       break;
   }

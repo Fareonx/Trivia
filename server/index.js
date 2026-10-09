@@ -5,7 +5,7 @@ import { Server } from 'socket.io';
 import { CONFIG } from './config.js';
 import { Game } from './Game.js';
 import { Bot } from './Bot.js';
-import { QuestionBank, loadQuestions } from './questions.js';
+import { QuestionBank, loadQuestions, loadCategories } from './questions.js';
 
 const PORT = Number(process.env.PORT) || 3000;
 // A player who drops out of a running match has this long to come back.
@@ -20,6 +20,8 @@ app.get('/healthz', (_req, res) => res.send('ok'));
 const httpServer = createServer(app);
 const io = new Server(httpServer);
 const questions = loadQuestions();
+const categories = loadCategories();
+const defaultSettings = () => ({ mode: 'capital', categories: categories.map((c) => c.id) });
 
 /**
  * code → { code, hostId, members, game, timer, bots }
@@ -39,6 +41,8 @@ function lobbyState(room) {
   return {
     code: room.code,
     hostId: room.hostId,
+    settings: room.settings,
+    categories,
     inGame: Boolean(room.game && room.game.phase === 'playing'),
     members: [...room.members.values()].map((m) => ({
       id: m.id, name: m.name, isBot: Boolean(m.isBot), level: m.level ?? null, online: Boolean(m.isBot || m.socketId),
@@ -81,7 +85,7 @@ function flush(room) {
 function startGame(room) {
   const now = Date.now();
   const players = [...room.members.values()].slice(0, CONFIG.MAX_PLAYERS).map((m) => ({ id: m.id, name: m.name }));
-  room.game = new Game({ players, questionBank: new QuestionBank(questions), now });
+  room.game = new Game({ players, questionBank: new QuestionBank(questions), settings: room.settings, now });
   room.bots = [...room.members.values()].filter((m) => m.isBot).map((m) => new Bot(m.id, m.level));
   let lastFullSync = now;
   room.timer = setInterval(() => {
@@ -117,7 +121,7 @@ io.on('connection', (socket) => {
     playerId = String(token ?? '').slice(0, 64) || socket.id;
     room = rooms.get(code);
     if (!room) {
-      room = { code, hostId: playerId, members: new Map(), game: null, timer: null, bots: [] };
+      room = { code, hostId: playerId, members: new Map(), game: null, timer: null, bots: [], settings: defaultSettings() };
       rooms.set(code, room);
     }
     const existing = room.members.get(playerId);
@@ -167,6 +171,15 @@ io.on('connection', (socket) => {
     return { ok: true, id };
   }));
 
+  socket.on('settings', lobbyAction(({ mode, categories: chosen }) => {
+    const known = new Set(categories.map((c) => c.id));
+    const picked = Array.isArray(chosen) ? [...new Set(chosen.filter((c) => known.has(c)))] : [];
+    if (!CONFIG.MODES.includes(mode)) return { ok: false, error: 'bad_mode' };
+    if (!picked.length) return { ok: false, error: 'no_categories' };
+    room.settings = { mode, categories: picked };
+    return { ok: true };
+  }));
+
   socket.on('removeBot', lobbyAction(({ id }) => {
     if (!room.members.get(id)?.isBot) return { ok: false, error: 'no_bot' };
     room.members.delete(id);
@@ -186,6 +199,7 @@ io.on('connection', (socket) => {
   }));
   socket.on('answer', gameAction((game, { index }, now) => game.submitAnswer(playerId, Number(index), now)));
   socket.on('upgrade', gameAction((game) => game.upgradeTownHall(playerId)));
+  socket.on('stopGame', gameAction((game, _, now) => (room.hostId === playerId ? game.stopByHost(now) : { ok: false, error: 'not_host' })));
   socket.on('ping_time', (_ = {}, ack = () => {}) => ack(Date.now()));
 
   socket.on('disconnect', () => {
