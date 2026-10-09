@@ -93,3 +93,21 @@ input {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* Lobby settings */
+.settings { border: 1px solid #3a4252; border-radius: 10px; padding: 10px 12px; margin: 4px 0 12px; }
+.settings legend { color: var(--muted); font-size: .85rem; padding: 0 4px; }
+.mode-row { display: flex; gap: 16px; flex-wrap: wrap; }
+.mode-row label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.mode-row input { width: auto; margin: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.chip {
+  padding: 5px 10px; border-radius: 999px; font-size: .85rem; font-weight: 500;
+  background: var(--bg); color: var(--muted); border: 1px solid #4a5263;
+}
+.chip[aria-pressed="true"] { background: #3a3220; color: var(--accent); border-color: var(--accent); }
+.settings:disabled .chip, .settings:disabled label { cursor: default; }
+#territory-row { margin-top: 6px; color: var(--muted); font-size: .9rem; }
+#stop-btn { padding: 6px 10px; font-size: .85rem; }
+.standings { padding-left: 20px; display: grid; gap: 4px; }
+.standings li.winner { color: var(--accent); font-weight: 600; }

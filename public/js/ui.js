@@ -19,6 +19,22 @@ export const TEXT = {
     not_alive: 'Siz artıq müşahidəçisiniz',
     game_over: 'Oyun bitib',
     no_bot: 'Bot tapılmadı',
+    knight_dead: 'Cəngavəriniz həlak olub — Ratuşada qayıtmasını gözləyin',
+    wrong_mode: 'Oyunu yalnız "Ərazi" rejimində bitirmək olar',
+    bad_mode: 'Naməlum oyun rejimi',
+    no_categories: 'Ən azı bir kateqoriya seçin',
+  },
+  killed: 'Cəngavəriniz mühasirədə həlak oldu — 10 saniyə sonra Ratuşada qayıdacaq',
+  respawned: 'Cəngavəriniz Ratuşada yenidən hazırdır',
+  retreated: 'Dayandığınız xana alındı — cəngavər geri çəkildi',
+  modes: {
+    capital: 'Bütün rəqib Ratuşalarını alan qalib gəlir.',
+    territory: 'Boş xana qalmayanda və ya otaq sahibi oyunu bitirəndə ən çox xanası olan qalib gəlir. Ratuşanı almaq da olar.',
+  },
+  reasons: {
+    capitals: 'Bütün rəqib Ratuşaları alındı.',
+    board_full: 'Boş xana qalmadı.',
+    host_stopped: 'Otaq sahibi oyunu bitirdi.',
   },
   correct: 'Düzgün! ✔',
   wrong: 'Səhv cavab. Xana 1 dəqiqəlik sizin üçün bağlandı',
@@ -49,7 +65,42 @@ function dot(color) {
 
 export const BOT_LEVEL_NAMES = { easy: 'Asan', medium: 'Orta', hard: 'Çətin' };
 
-export function renderLobby(lobby, you, { onRemoveBot }) {
+// Question categories as sent by the server: [{ id, name, icon }].
+let categoryList = [];
+export function setCategories(list) {
+  categoryList = list ?? [];
+}
+export function categoryInfo(id) {
+  return categoryList.find((c) => c.id === id) ?? { id, name: id, icon: '❓' };
+}
+
+function renderSettings(lobby, editable, onSettings) {
+  const { mode, categories } = lobby.settings;
+  $('settings-panel').disabled = !editable;
+  for (const radio of document.querySelectorAll('input[name="mode"]')) {
+    radio.checked = radio.value === mode;
+    radio.onchange = () => onSettings({ mode: radio.value, categories });
+  }
+  $('mode-hint').textContent = TEXT.modes[mode];
+  const chips = $('category-chips');
+  chips.replaceChildren();
+  for (const c of lobby.categories) {
+    const on = categories.includes(c.id);
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'chip';
+    chip.textContent = `${c.icon} ${c.name}`;
+    chip.setAttribute('aria-pressed', String(on));
+    chip.addEventListener('click', () => {
+      const next = on ? categories.filter((id) => id !== c.id) : [...categories, c.id];
+      if (next.length) onSettings({ mode, categories: next });
+      else toast(TEXT.errors.no_categories, 'bad');
+    });
+    chips.appendChild(chip);
+  }
+}
+
+export function renderLobby(lobby, you, { onRemoveBot, onSettings }) {
   $('join-form').hidden = true;
   $('room-panel').hidden = false;
   $('room-code').textContent = lobby.code;
@@ -72,6 +123,7 @@ export function renderLobby(lobby, you, { onRemoveBot }) {
     }
     list.appendChild(li);
   });
+  renderSettings(lobby, isHost && !lobby.inGame, onSettings);
   $('bot-controls').hidden = !isHost || lobby.inGame;
   $('add-bot-btn').disabled = lobby.members.length >= 4;
   $('start-btn').hidden = !isHost;
@@ -81,8 +133,14 @@ export function renderLobby(lobby, you, { onRemoveBot }) {
       : isHost ? 'Hazırsınızsa, oyunu başladın.' : 'Otağın sahibi oyunu başladacaq.';
 }
 
-export function renderHud(state) {
+export function renderHud(state, { isHost }) {
   const me = state.players.find((p) => p.id === state.you);
+  const territory = state.mode === 'territory';
+  $('territory-row').hidden = !territory;
+  if (territory) {
+    $('neutral-count').textContent = `Boş xana: ${state.cells.filter((c) => !c.owner).length}`;
+    $('stop-btn').hidden = !isHost || state.phase !== 'playing';
+  }
   $('gold').textContent = me.gold;
   $('wood').textContent = me.wood;
   $('hall-level').textContent = `Ratuşa: ${'★'.repeat(me.townHallLevel)}`;
@@ -113,6 +171,7 @@ export function renderHud(state) {
 
   const k = me.knight;
   $('status').textContent = !me.alive ? '👻 Ratuşanız alındı — indi müşahidəçisiniz'
+    : k.state === 'respawning' ? '💀 Cəngavər həlak olub — tezliklə Ratuşada qayıdacaq'
     : k.state === 'moving' ? 'Cəngavər yoldadır…'
       : k.state === 'arrived' ? 'Rəqib gözlənilir — duel olacaq!'
         : k.state === 'answering' ? 'Suala cavab verin!'
@@ -136,7 +195,8 @@ export class QuestionWindow {
   show(q, playerNames) {
     clearTimeout(this.hideTimer);
     this.current = { ...q, start: this.serverNow(), answered: false };
-    const meta = [`Çətinlik: ${'●'.repeat(q.difficulty)}${'○'.repeat(5 - q.difficulty)}`];
+    const category = categoryInfo(q.category);
+    const meta = [`${category.icon} ${category.name}`, `Çətinlik: ${'●'.repeat(q.difficulty)}${'○'.repeat(5 - q.difficulty)}`];
     if (q.duel) meta.push(`⚔ Duel: ${q.opponents.map((id) => playerNames.get(id)).join(', ') || '—'}`);
     if (q.round > 1) meta.push(`Sual ${q.round}`);
     if (q.required > 1) meta.push(`Ratuşa: ${q.correctSoFar}/${q.required} düz cavab`);
@@ -188,9 +248,18 @@ export class QuestionWindow {
   }
 }
 
-export function showEnd(title, text, buttonText, onClose) {
+/** standings: [{ name, cells, winner }] to list, or null to hide the table. */
+export function showEnd(title, text, buttonText, onClose, standings = null) {
   $('end-title').textContent = title;
   $('end-text').textContent = text;
+  const list = $('end-standings');
+  list.hidden = !standings;
+  list.replaceChildren(...(standings ?? []).map((s) => {
+    const li = document.createElement('li');
+    li.textContent = `${s.name} — ${s.cells} xana`;
+    if (s.winner) li.className = 'winner';
+    return li;
+  }));
   $('end-btn').textContent = buttonText;
   $('end-btn').onclick = () => {
     $('end').hidden = true;

@@ -79,25 +79,29 @@ test('bot answers each duel round only once', () => {
   assert.equal(calls, 1);
 });
 
-test('bot vs bot: a full match runs to a winner without breaking any rule', () => {
-  const rand = mulberry32(2024);
+function simulate(mode, seed) {
+  const rand = mulberry32(seed);
   const game = new Game({
     players: [{ id: 'hard', name: 'Hard' }, { id: 'easy', name: 'Easy' }],
-    questionBank: new QuestionBank(loadQuestions(), rand),
-    map: generateMap(2, 2024),
+    questionBank: new QuestionBank(loadQuestions(), { rand }),
+    map: generateMap(2, seed),
+    settings: { mode },
     now: 0,
+    rand,
   });
   const bots = [new Bot('hard', 'hard', rand), new Bot('easy', 'easy', rand)];
   const LIMIT = 3 * 60 * 60 * 1000;
   let t = 0;
+  let gameOver = null;
   for (; t <= LIMIT && game.phase === 'playing'; t += 100) {
     game.update(t);
     for (const b of bots) b.update(game, t);
-    game.drainEvents();
+    gameOver = game.drainEvents().find((e) => e.type === 'gameOver') ?? gameOver;
     if (t % 10000 === 0) {
       for (const p of game.players.values()) {
         if (!p.alive) continue;
         assert.ok(game.cells.has(p.knight.at), 'knight stands on a real hex');
+        if (p.knight.state === 'idle') assert.equal(game.cells.get(p.knight.at).owner, p.id, 'idle knight stands on own land');
         assert.ok(p.gold >= 0 && p.wood >= 0);
         assert.equal(game.cells.get(p.townHall).owner, p.id, 'alive player still owns their capital');
       }
@@ -105,8 +109,19 @@ test('bot vs bot: a full match runs to a winner without breaking any rule', () =
   }
   assert.equal(game.phase, 'over', `no winner after ${t / 60000} min`);
   const winner = game.players.get(game.winner);
-  assert.ok(winner.alive);
+  assert.ok(winner?.alive);
+  console.log(`  ${mode}: ${game.winner} won after ${(t / 60000).toFixed(1)} min (${gameOver.data.reason})`);
+  return { game, winner, gameOver };
+}
+
+test('bot vs bot: a capital match runs to a winner without breaking any rule', () => {
+  const { game, winner } = simulate('capital', 2024);
   assert.equal(owned(game, winner.id), game.cells.size - owned(game, null));
-  console.log(`  winner: ${game.winner} after ${(t / 60000).toFixed(1)} min, Town Hall level ${winner.townHallLevel}`);
   assert.ok(CONFIG.BOT_LEVELS[game.winner]);
+});
+
+test('bot vs bot: a territory match ends with the biggest empire winning', () => {
+  const { game, gameOver } = simulate('territory', 77);
+  assert.ok(['board_full', 'capitals'].includes(gameOver.data.reason));
+  assert.equal(gameOver.data.standings[0].playerId, game.winner);
 });

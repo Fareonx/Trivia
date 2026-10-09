@@ -1,33 +1,51 @@
 import { CONFIG, PLAYER_COLORS, answerMsForDifficulty } from './config.js';
 import { generateMap } from './mapgen.js';
-import { neighborKeys, findPath } from '../shared/hex.js';
+import { neighborKeys, findPath, parseKey, distance } from '../shared/hex.js';
 
 /**
  * Authoritative game state for one match. Time is always passed in (`now`, ms)
  * so the rules can be driven deterministically from tests.
  *
- * Knight states: idle → moving → arrived (waiting for a rival) → answering → idle.
+ * Knight states: idle → moving → arrived (waiting for a rival) → answering → idle,
+ * plus respawning (killed while surrounded) and dead (player eliminated).
  * An "engagement" is everything happening on one target hex: a solo question
  * or a duel. While a knight has arrived at a hex, that hex is busy for everyone else.
+ *
+ * settings.mode: 'capital' or 'territory' (see CONFIG.MODES).
+ * settings.categories: question categories in play; every hex gets one of them.
  */
 export class Game {
-  constructor({ players, questionBank, seed = Date.now(), now = Date.now(), map = null }) {
+  constructor({ players, questionBank, settings = {}, seed = Date.now(), now = Date.now(), map = null, rand = Math.random }) {
     this.bank = questionBank;
     this.map = map ?? generateMap(players.length, seed);
+    this.mode = CONFIG.MODES.includes(settings.mode) ? settings.mode : 'capital';
+    const known = new Set(this.bank.categories());
+    const chosen = (settings.categories ?? []).filter((c) => known.has(c));
+    this.categories = chosen.length ? chosen : [...known];
     this.phase = 'playing';
     this.winner = null;
     this.events = [];
     this.lastIncome = now;
 
+    // Deal the categories round-robin over the hexes in random order, so each gets an equal share.
+    const keys = [...this.map.cells.keys()];
+    for (let i = keys.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1));
+      [keys[i], keys[j]] = [keys[j], keys[i]];
+    }
+    const categoryOf = new Map(keys.map((k, i) => [k, this.categories[i % this.categories.length]]));
+
     this.cells = new Map();
     for (const [k, c] of this.map.cells) {
+      const category = categoryOf.get(k);
       this.cells.set(k, {
         ...c,
         key: k,
+        category,
         owner: null,
         townHallOf: null,
         ruin: false,
-        questionId: this.bank.draw(c.difficulty),
+        questionId: this.bank.draw(category, c.difficulty, [], this.categories),
       });
     }
 
@@ -84,6 +102,7 @@ export class Game {
     if (this.phase !== 'playing') return fail('game_over');
     if (!player || !player.alive) return fail('not_alive');
     const knight = player.knight;
+    if (knight.state === 'respawning') return fail('knight_dead');
     if (knight.state !== 'idle') return fail('knight_busy');
     const cell = this.cells.get(targetKey);
     if (!cell) return fail('no_cell');
@@ -136,11 +155,28 @@ export class Game {
     this.checkWinner();
   }
 
+  // Territory mode only: the host ends the match; most hexes wins.
+  stopByHost(now) {
+    if (this.phase !== 'playing') return fail('game_over');
+    if (this.mode !== 'territory') return fail('wrong_mode');
+    this.update(now);
+    if (this.phase === 'playing') this.endByTerritory('host_stopped');
+    return { ok: true };
+  }
+
   // ---------------------------------------------------------------- simulation
 
   update(now) {
     if (this.phase !== 'playing') return;
     this.advanceKnights(now);
+
+    for (const player of this.players.values()) {
+      const knight = player.knight;
+      if (player.alive && knight.state === 'respawning' && now >= knight.respawnAt) {
+        Object.assign(knight, { state: 'idle', at: player.townHall, respawnAt: null });
+        this.emit(null, 'knightRespawned', { playerId: player.id, at: player.townHall });
+      }
+    }
 
     for (const eng of [...this.engagements.values()]) {
       if (eng.phase === 'waiting' && now >= eng.waitUntil) this.stopLateRivals(eng, eng.waitUntil);
@@ -195,6 +231,7 @@ export class Game {
       knight.at = knight.from;
       Object.assign(knight, { state: 'idle', target: null, from: null, stepIndex: 0 });
       this.emit(null, 'knightStopped', { playerId: player.id, at: knight.at });
+      this.settleKnight(player, time);
       return;
     }
     if (eng) {
@@ -246,19 +283,23 @@ export class Game {
     eng.round++;
     eng.phase = 'question';
     eng.answers = new Map();
-    // The first question is the hex's own; follow-ups (duel rounds, level-3 halls) are fresh.
-    const questionId = eng.round === 1 ? cell.questionId : this.bank.draw(cell.difficulty, [cell.questionId]);
+    const hall = this.townHallLevelOf(cell);
+    const difficulty = Math.max(cell.difficulty, hall?.difficulty ?? 0);
+    // An ordinary hex opens with its own question; duel follow-ups and Town Halls draw fresh, harder ones.
+    const questionId = eng.round === 1 && !hall
+      ? cell.questionId
+      : this.bank.draw(cell.category, difficulty, [cell.questionId, eng.question?.id], this.categories);
     eng.question = this.bank.present(questionId);
 
-    let answerMs = answerMsForDifficulty(cell.difficulty);
-    const hall = this.townHallLevelOf(cell);
+    let answerMs = answerMsForDifficulty(difficulty);
     if (hall?.answerMs) answerMs = Math.min(answerMs, hall.answerMs);
     eng.deadline = time + answerMs;
 
     for (const id of eng.active) {
       this.emit(id, 'question', {
         target: eng.target,
-        difficulty: cell.difficulty,
+        category: eng.question.category,
+        difficulty: this.bank.get(questionId).difficulty,
         text: eng.question.text,
         options: eng.question.options,
         deadline: eng.deadline,
@@ -322,21 +363,51 @@ export class Game {
     // Solo failure: step back to the hex we came from. Duel loss: back to the Town Hall.
     knight.at = eng.duel ? player.townHall : knight.from;
     Object.assign(knight, { state: 'idle', path: null, target: null, from: null, stepIndex: 0 });
+    this.settleKnight(player, time);
   }
 
   capture(player, cell, time) {
     const previousOwner = cell.owner ? this.players.get(cell.owner) : null;
     cell.owner = player.id;
-    cell.questionId = this.bank.draw(cell.difficulty, [cell.questionId]);
+    cell.questionId = this.bank.draw(cell.category, cell.difficulty, [cell.questionId], this.categories);
     const knight = player.knight;
     knight.at = cell.key;
     Object.assign(knight, { state: 'idle', path: null, target: null, from: null, stepIndex: 0 });
     this.emit(null, 'cellCaptured', { key: cell.key, playerId: player.id, from: previousOwner?.id ?? null });
 
+    // Knights standing on the lost hex retreat, or die if they are surrounded.
+    for (const other of this.players.values()) {
+      if (other.id !== player.id && other.knight.at === cell.key) this.settleKnight(other, time);
+    }
+
     if (previousOwner && cell.townHallOf === previousOwner.id) {
       this.eliminate(previousOwner, player, time);
       this.checkWinner();
     }
+    this.checkBoardFull();
+  }
+
+  /**
+   * An idle knight must stand on its own land. If it does not, it steps to an
+   * adjacent own hex (the one closest to its Town Hall); with none around it is
+   * surrounded, dies, and comes back at its Town Hall after RESPAWN_MS.
+   */
+  settleKnight(player, time) {
+    const knight = player.knight;
+    if (!player.alive || knight.state !== 'idle') return;
+    if (this.cells.get(knight.at)?.owner === player.id) return;
+    const home = parseKey(player.townHall);
+    const retreat = neighborKeys(knight.at)
+      .filter((n) => this.cells.get(n)?.owner === player.id)
+      .sort((a, b) => distance(parseKey(a), home) - distance(parseKey(b), home))[0];
+    if (retreat) {
+      const from = knight.at;
+      knight.at = retreat;
+      this.emit(null, 'knightRetreated', { playerId: player.id, from, at: retreat });
+      return;
+    }
+    Object.assign(knight, { state: 'respawning', respawnAt: time + CONFIG.RESPAWN_MS });
+    this.emit(null, 'knightKilled', { playerId: player.id, at: knight.at, respawnAt: knight.respawnAt });
   }
 
   eliminate(loser, conqueror, time) {
@@ -373,12 +444,39 @@ export class Game {
   }
 
   checkWinner() {
+    if (this.phase !== 'playing') return;
     const alive = [...this.players.values()].filter((p) => p.alive);
-    if (alive.length <= 1) {
-      this.phase = 'over';
-      this.winner = alive[0]?.id ?? null;
-      this.emit(null, 'gameOver', { winner: this.winner });
+    if (alive.length <= 1) this.finish(alive[0]?.id ?? null, 'capitals');
+  }
+
+  // Territory mode ends once no neutral hex is left.
+  checkBoardFull() {
+    if (this.phase !== 'playing' || this.mode !== 'territory') return;
+    for (const cell of this.cells.values()) if (!cell.owner) return;
+    this.endByTerritory('board_full');
+  }
+
+  // Players ranked by hexes owned, then by gold + wood.
+  standings() {
+    const counts = new Map();
+    for (const cell of this.cells.values()) {
+      if (cell.owner) counts.set(cell.owner, (counts.get(cell.owner) ?? 0) + 1);
     }
+    return [...this.players.values()]
+      .map((p) => ({ playerId: p.id, alive: p.alive, cells: counts.get(p.id) ?? 0, resources: p.gold + p.wood }))
+      .sort((a, b) => Number(b.alive) - Number(a.alive) || b.cells - a.cells || b.resources - a.resources);
+  }
+
+  endByTerritory(reason) {
+    const [first, second] = this.standings().filter((s) => s.alive);
+    const tie = second && second.cells === first.cells && second.resources === first.resources;
+    this.finish(tie ? null : first?.playerId ?? null, reason);
+  }
+
+  finish(winner, reason) {
+    this.phase = 'over';
+    this.winner = winner;
+    this.emit(null, 'gameOver', { winner, reason, standings: this.standings() });
   }
 
   stopKnight(player, time) {
@@ -390,6 +488,7 @@ export class Game {
       eng.participants = eng.participants.filter((id) => id !== player.id);
     }
     this.emit(null, 'knightStopped', { playerId: player.id, at: knight.at });
+    this.settleKnight(player, time);
     // A rival waiting for this knight no longer needs to wait.
     if (eng && eng.phase === 'waiting' && eng.participants.length && eng.participants.every((id) => eng.arrived.has(id))) {
       this.startEngagement(eng, time);
@@ -422,14 +521,15 @@ export class Game {
       now,
       phase: this.phase,
       winner: this.winner,
+      mode: this.mode,
       you: playerId,
       config: {
         moveMsPerHex: CONFIG.MOVE_MS_PER_HEX,
         townHallLevels: CONFIG.TOWN_HALL_LEVELS,
       },
       cells: [...this.cells.values()].map((c) => ({
-        key: c.key, q: c.q, r: c.r, difficulty: c.difficulty, resource: c.resource, owner: c.owner,
-        townHallOf: c.townHallOf, ruin: c.ruin,
+        key: c.key, q: c.q, r: c.r, difficulty: c.difficulty, category: c.category, resource: c.resource,
+        owner: c.owner, townHallOf: c.townHallOf, ruin: c.ruin,
       })),
       players: [...this.players.values()].map((p) => ({
         id: p.id,
@@ -440,7 +540,10 @@ export class Game {
         wood: p.wood,
         townHall: p.townHall,
         townHallLevel: p.townHallLevel,
-        knight: { at: p.knight.at, state: p.knight.state, path: p.knight.path, moveStart: p.knight.moveStart, target: p.knight.target },
+        knight: {
+          at: p.knight.at, state: p.knight.state, path: p.knight.path, moveStart: p.knight.moveStart,
+          target: p.knight.target, respawnAt: p.knight.respawnAt ?? null,
+        },
       })),
       engagements: [...this.engagements.values()].map((e) => ({
         target: e.target, phase: e.phase, participants: e.participants, duel: e.duel,

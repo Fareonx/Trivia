@@ -10,7 +10,9 @@ export function questions() {
   const out = [];
   let id = 1;
   for (let d = 1; d <= 5; d++) {
-    for (let i = 0; i < 6; i++) out.push({ id: id++, difficulty: d, text: `Q${id}`, correct: 'yes', wrong: ['a', 'b', 'c'] });
+    for (let i = 0; i < 6; i++) {
+      out.push({ id: id++, category: 'general', difficulty: d, text: `Q${id}`, correct: 'yes', wrong: ['a', 'b', 'c'] });
+    }
   }
   return out;
 }
@@ -31,8 +33,9 @@ export function makeGame(width, homes, opts) {
   const players = homes.map((_, i) => ({ id: `p${i}`, name: `P${i}` }));
   return new Game({
     players,
-    questionBank: new QuestionBank(questions(), () => 0.3),
+    questionBank: new QuestionBank(questions(), { rand: () => 0.3 }),
     map: stripMap(width, homes, opts),
+    settings: opts?.settings,
     now: 0,
   });
 }

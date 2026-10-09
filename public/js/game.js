@@ -15,16 +15,17 @@ const HEX_SIZE = 36;
 const DIFFICULTY_GREYS = ['#d4d7db', '#b3b8be', '#92989f', '#727880', '#545a62'];
 const MIN_ZOOM = 0.4;
 const MAX_ZOOM = 2.2;
-const EFFECT_MS = { capture: 700, fail: 600, arrive: 450, upgrade: 900 };
+const EFFECT_MS = { capture: 700, fail: 600, arrive: 450, upgrade: 900, death: 1200 };
 
 export class GameView {
-  constructor(canvas, { assets, serverNow, onCellClick, onStep = () => {} }) {
+  constructor(canvas, { assets, serverNow, onCellClick, onStep = () => {}, categoryIcon = () => '' }) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
     this.assets = assets;
     this.serverNow = serverNow;
     this.onCellClick = onCellClick;
     this.onStep = onStep;
+    this.categoryIcon = categoryIcon;
     this.effects = [];
     this.lastStep = null;
     this.reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
@@ -175,7 +176,7 @@ export class GameView {
   // Terrain changes rarely; render it once into an offscreen canvas.
   buildTerrain() {
     const zoom = this.camera.zoom * this.dpr;
-    const signature = `${zoom.toFixed(2)}|${this.state.cells.map((c) => c.owner ?? '-').join(',')}`;
+    const signature = `${zoom.toFixed(2)}|${this.state.cells.map((c) => `${c.key}:${c.owner ?? '-'}:${c.category}`).join(',')}`;
     if (signature === this.terrainKey) return;
     this.terrainKey = signature;
 
@@ -208,6 +209,13 @@ export class GameView {
       ctx.strokeStyle = '#2a2f37';
       ctx.lineWidth = 1.5;
       ctx.stroke();
+      // Question category icon at the top of the hex (part of the cached layer, so emoji are drawn rarely).
+      if (c.category && !c.townHallOf) {
+        ctx.font = '15px system-ui, "Segoe UI Emoji", "Apple Color Emoji", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(this.categoryIcon(c.category), x, y - HEX_SIZE * 0.5);
+      }
       // Difficulty pips at the bottom of the hex.
       ctx.fillStyle = '#1b1f2699';
       for (let i = 0; i < c.difficulty; i++) {
@@ -354,6 +362,14 @@ export class GameView {
     const perHex = new Map();
     for (const p of this.players.values()) {
       if (!p.alive) continue;
+      if (p.knight.state === 'respawning') {
+        // Fallen knight: countdown next to its Town Hall until it returns.
+        const hall = this.center(p.townHall);
+        sprites.push({ y: hall.y + HEX_SIZE, draw: () => {
+          this.drawBadge(hall.x + HEX_SIZE * 0.55, hall.y + HEX_SIZE * 0.35, `💀 ${formatSeconds(p.knight.respawnAt - now)}`, '#1b1f26d0');
+        } });
+        continue;
+      }
       const pos = this.knightPosition(p, now);
       const slot = pos.moving ? 0 : (perHex.get(p.knight.at) ?? 0);
       if (!pos.moving) perHex.set(p.knight.at, slot + 1);
@@ -442,6 +458,12 @@ export class GameView {
           ctx.arc(x + Math.cos(a) * d, y + HEX_SIZE * 0.5 - Math.abs(Math.sin(a)) * d * 0.3, 3 + 4 * p, 0, Math.PI * 2);
           ctx.fill();
         }
+      } else if (e.type === 'death') {
+        ctx.font = '26px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.globalAlpha = 1 - p;
+        ctx.fillText('💀', x, y - HEX_SIZE * 0.2 - (this.reducedMotion ? 0 : p * HEX_SIZE * 0.8));
       } else if (e.type === 'upgrade') {
         ctx.font = '16px system-ui, sans-serif';
         ctx.textAlign = 'center';
